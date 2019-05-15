@@ -77,7 +77,7 @@ class Classroom(models.Model):
 class Course(models.Model):
     name = models.CharField(max_length=20)
     level_field = models.ForeignKey('LevelField', on_delete=models.SET_NULL, null=True)
-    unit = models.IntegerField(null=True)
+    unit = models.IntegerField()
 
     def __str__(self):
         return self.name
@@ -86,8 +86,8 @@ class Course(models.Model):
 class StudentCourse(models.Model):
     student = models.ForeignKey('Student', related_name='student_courses', on_delete=models.SET_NULL, null=True)
     course = models.ForeignKey('Course', related_name='student_courses', on_delete=models.SET_NULL, null=True)
-    final_grade = models.FloatField()
-    mid_grade = models.FloatField()
+    final_grade = models.FloatField(blank=True, null=True)
+    mid_grade = models.FloatField(blank=True, null=True)
 
 
 class Register(models.Model):

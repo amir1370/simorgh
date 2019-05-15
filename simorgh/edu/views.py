@@ -1,11 +1,15 @@
 from django.shortcuts import render
 from .models import Student, Classroom, Teacher
-from django.views.generic.edit import FormView, UpdateView
+from django.views.generic.edit import FormView, UpdateView, CreateView
 from django.views.generic.list import ListView
 from django.views.generic.detail import DetailView
-from .forms import StudentForm, TeacherSearchForm
+from .forms import StudentForm, TeacherSearchForm, TeacherForm
 from django.db.models import Q
 import datetime
+from .serializers import StudentSerializer
+from django.http import JsonResponse
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth import logout
 
 
 def class_list(request, class_id):
@@ -37,6 +41,7 @@ class StudentUpdateView(UpdateView):
     fields = ['student_id']
 
 
+
 class TeacherListView(ListView):
     model = Teacher
     form_class = TeacherSearchForm
@@ -52,12 +57,7 @@ class TeacherListView(ListView):
     def get_queryset(self):
         queryset = super().get_queryset()
         if self.request.GET:
-            # print(self.request.GET)
-            # first_name = self.request.GET.get('first_name')
-            # last_name = self.request.GET.get('last_name')
-            # queryset = queryset.filter(
-            #     Q(user__first_name__icontains= first_name)|Q(user__last_name__icontains= last_name)
-            # )
+
             queryset = self.filter_queryset(queryset)
         return queryset
 
@@ -81,13 +81,26 @@ class TeacherListView(ListView):
         return queryset
 
 
+
 class TeacherDetailView(DetailView):
     model = Teacher
+
 
 
 class TeacherUpdateView(UpdateView):
     model = Teacher
     fields = ['hire_date', 'education_degree']
+
+
+
+class TeacherCreateView(CreateView):
+    template_name = 'edu/teacher_form.html'
+    form_class = TeacherForm
+    success_url = '/dashboard/studentlist/'
+
+    def form_valid(self, form):
+        form.save()
+        return super().form_valid(form)
 
 
 class ClassroomListView(ListView):
@@ -101,3 +114,20 @@ class ClassroomDetailView(DetailView):
 class ClassroomUpdateView(UpdateView):
     model = Classroom
     fields = ['branch', 'education_year']
+
+@login_required
+def student_list_api(request):
+    if request.method == 'GET':
+        students = Student.objects.all()
+        student_serializer = StudentSerializer(students, many=True)
+        return JsonResponse(student_serializer.data, safe=False)
+
+@login_required
+def login_view(request):
+    user = request.user
+    return render(request, 'index.html', {'user': user})
+
+
+def logout_view(request):
+    logout(request)
+    return render(request, 'login.html')

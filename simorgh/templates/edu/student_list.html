@@ -1,10 +1,8 @@
-{% extends 'base.html' %}
+{% extends 'index.html' %}
 {% load static from staticfiles %}
 
-{% block title %}لیست دانش آموزان{% endblock %}
 
-
-{% block content %}
+{% block content2 %}
     <div class="container mt-5">
         <table class="table table-hover">
         <tr>
@@ -23,13 +21,13 @@
                 {{ student.user.last_name }}
             </td>
             <td>
-                <a href="/class/home/students/{{ student.pk }}/">
+                <a href="dashboard/students/{{ student.pk }}/">
                     detail
                 </a>
 
             </td>
             <td>
-                <a href="/class/home/students/{{ student.pk }}/edit">
+                <a href="dashboard/students/{{ student.pk }}/edit">
                     edit
                 </a>
             </td>

@@ -1,55 +1,66 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css">
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.6/umd/popper.min.js"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.2.1/js/bootstrap.min.js"></script>
-    <title>Students_list</title>
-</head>
-<body>
-    <div class="container mt-5">
-        <form action="" method="get" class="form-horizontal p-auto">
-        {% csrf_token %}
-        {{ search.as_p }}
-        <input type="submit" class="btn btn-primary" value="Search" />
-        </form>
-        <table class="table table-hover">
-        <tr>
-            <th>teacher firstname</th>
-            <th>teacher lastname</th>
-            <th>teacher hire_date</th>
-            <th>teacher detail</th>
-            <th>teacher edit</th>
-        </tr>
+{% extends 'index.html' %}
+{% load static from staticfiles %}
 
-        {% for teacher in teacher_list %}
-        <tr>
-            <td>
-                {{ teacher.user.first_name }}
-            </td>
-            <td>
-                {{ teacher.user.last_name }}
-            </td>
-            <td>
-                {{ teacher.hire_date }}
-            </td>
-            <td>
-                <a href="/class/home/teachers/{{ teacher.pk }}/">
-                    detail
-                </a>
 
-            </td>
-            <td>
-                <a href="/class/home/teachers/{{ teacher.pk }}/edit">
-                    edit
-                </a>
-            </td>
-        </tr>
-        {% endfor %}
-        </table>
-    </div>
+{% block content2 %}
 
-</body>
-</html>
+        <div class="row">
+                <div class="col-9">
+                    <a href="/dashboard/teacherform/">
+                                 ایجاد
+                              </a>
+                    <div class="bg-light m-2">
+                <table class="table table-hover">
+                     <tr>
+                         <th>نام</th>
+                         <th>نام خانوادگی</th>
+                         <th>تاریخ استخدام</th>
+                         <th>مشخصات</th>
+                         <th>ویرایش</th>
+                     </tr>
+
+                      {% for teacher in teacher_list %}
+                     <tr>
+                         <td>
+                             {{ teacher.user.first_name }}
+                         </td>
+                          <td>
+                              {{ teacher.user.last_name }}
+                         </td>
+                          <td>
+                              {{ teacher.hire_date }}
+                         </td>
+                          <td>
+                              <a href="/dashboard/teachers/{{ teacher.pk }}/">
+                                 جزئیات
+                              </a>
+                          </td>
+                          <td>
+                              <a href="/dashboard/teachers/{{ teacher.pk }}/edit">
+                                  ویرایش
+                              </a>
+                          </td>
+                     </tr>
+                     {% endfor %}
+                 </table>
+                    </div>
+                </div>
+
+                <div class="col-3">
+                    <div class="bg-light m-2" >
+                 <table class="m-5">
+                    <form action="" method="get" class="form-horizontal p-auto">
+                        {% csrf_token %}
+                        {{ search.as_p }}
+                    <tr>
+                        <td></td>
+                        <td class="text-right"><input type="submit" class="btn btn-primary" value="Search" /></td>
+                    </tr>
+                     </form>
+                 </table>
+            </div>
+                </div>
+        </div>
+
+
+{% endblock %}
