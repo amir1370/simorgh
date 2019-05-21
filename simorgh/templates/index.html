@@ -84,7 +84,7 @@
                 <nav class="navbar-sidebar">
                     <ul class="list-unstyled navbar__list">
                         <li class="active has-sub">
-                            <a class="js-arrow" href="#">
+                            <a class="js-arrow" href="/dashboard/">
                                 <i class="fas fa-tachometer-alt"></i>داشبورد</a>
                         </li>
                         <li>
@@ -100,25 +100,25 @@
                                 <i class="fas fa-desktop"></i>مدیریت</a>
                             <ul class="list-unstyled navbar__sub-list js-sub-list">
                                 <li>
-                                    <a href="studentlist">مدیریت دانش آموزان</a>
+                                    <a href="/dashboard/studentlist">مدیریت دانش آموزان</a>
                                 </li>
                                 <li>
-                                    <a href="teacherlist">مدیریت معلمان</a>
+                                    <a href="/dashboard/teacherlist">مدیریت معلمان</a>
                                 </li>
                                 <li>
-                                    <a href="classlist">مدیریت کلاس ها</a>
+                                    <a href="/dashboard/classroomlist">مدیریت کلاس ها</a>
                                 </li>
                             </ul>
                         </li>
                         <li class="has-sub">
                             <a class="js-arrow" href="#">
-                                <i class="fas fa-registered"></i>ثبت نام</a>
+                                <i class="fas fa-registered"></i>ثبت کلاس</a>
                             <ul class="list-unstyled navbar__sub-list js-sub-list">
                                 <li>
-                                    <a href="#">درس</a>
+                                    <a href="/dashboard/teacherclasscourse">معلم - درس</a>
                                 </li>
                                 <li>
-                                    <a href="#">معلم</a>
+                                    <a href="/dashboard/studentregister/">دانش آموز</a>
                                 </li>
                             </ul>
                         </li>
@@ -172,7 +172,7 @@
                                                 </div>
                                             </div>
                                             <div class="account-dropdown__footer">
-                                                <a href="logout">
+                                                <a href="/logout/">
                                                     <i class="zmdi zmdi-power"></i>خروج</a>
                                             </div>
                                         </div>
@@ -215,8 +215,6 @@
     <script src="{% static 'vendor/circle-progress/circle-progress.min.js' %}"></script>
     <script src="{% static 'vendor/perfect-scrollbar/perfect-scrollbar.js' %}"></script>
     <script src="{% static 'vendor/chartjs/Chart.bundle.min.js' %}"></script>
-    <script src="{% static 'vendor/select2/select2.min.js' %}">
-    </script>
 
     <!-- Main JS-->
     <script src="{% static 'js/main.js' %}"></script>

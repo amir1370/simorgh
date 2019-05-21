@@ -3,37 +3,60 @@
 
 
 {% block content2 %}
-    <div class="container mt-5">
-        <table class="table table-hover">
-        <tr>
-            <th>student firstname</th>
-            <th>student lastname</th>
-            <th>student detail</th>
-            <th>student edit</th>
-        </tr>
 
-        {% for student in object_list %}
-        <tr>
-            <td>
-                {{ student.user.first_name }}
-            </td>
-            <td>
-                {{ student.user.last_name }}
-            </td>
-            <td>
-                <a href="dashboard/students/{{ student.pk }}/">
-                    detail
-                </a>
+        <div class="row">
+                <div class="col-9">
+                    <a href="/dashboard/studentform/">
+                                 ایجاد
+                              </a>
+                    <div class="bg-light m-2">
+                <table class="table table-hover" style="text-align: center">
+                     <tr>
+                         <th>نام</th>
+                         <th>نام خانوادگی</th>
+                         <th>مشخصات</th>
+                         <th>ویرایش</th>
+                     </tr>
 
-            </td>
-            <td>
-                <a href="dashboard/students/{{ student.pk }}/edit">
-                    edit
-                </a>
-            </td>
-        </tr>
-        {% endfor %}
-        </table>
-    </div>
+                      {% for student in student_list %}
+                     <tr>
+                         <td>
+                             {{ student.user.first_name }}
+                         </td>
+                          <td>
+                              {{ student.user.last_name }}
+                         </td>
+                          <td>
+                              <a href="/dashboard/students/{{ student.pk }}/">
+                                 <i class="fas fa-info-circle"></i>
+                              </a>
+                          </td>
+                          <td>
+                              <a href="/dashboard/students/{{ student.pk }}/edit">
+                                  <i class="fas fa-edit"></i>
+                              </a>
+                          </td>
+                     </tr>
+                     {% endfor %}
+                 </table>
+                    </div>
+                </div>
+
+                <div class="col-3">
+                    <div class="bg-light m-2" >
+                 <table class="m-5">
+                    <form action="" method="get" class="form-horizontal p-auto">
+                        {% csrf_token %}
+                        {{ search.as_p }}
+                    <tr>
+                        <td></td>
+                        <td class="text-right"><input type="submit" class="btn btn-primary" value="Search" /></td>
+                    </tr>
+                     </form>
+                 </table>
+            </div>
+                </div>
+        </div>
+
 
 {% endblock %}
