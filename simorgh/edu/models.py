@@ -16,7 +16,7 @@ class Student(models.Model):
 
 class Teacher(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, verbose_name='کاربر')
-    hire_date = models.DateField(verbose_name='تاریخ استخدام')
+    hire_date = models.DateField(null=True, blank=True, verbose_name='تاریخ استخدام')
 
     @property
     def get_experience(self):
@@ -45,14 +45,14 @@ class LevelField(models.Model):
         (SECOND, 'دوم'),
         (THIRD, 'سوم')
     )
-    level = models.CharField(max_length=10, choices=level_choices, default='first')
+    level = models.CharField(max_length=10, choices=level_choices, default='first', verbose_name='پایه')
     MATH, NATURAL, HUMANITY = 'math', 'natural', 'humanity'
     field_choices = (
         (MATH, 'ریاضی'),
         (NATURAL, 'تجربی'),
         (HUMANITY, 'انسانی')
     )
-    field = models.CharField(max_length=10, choices=field_choices)
+    field = models.CharField(max_length=10, choices=field_choices, verbose_name='رشته', blank=True)
 
     def __str__(self):
         return self.get_level_display() + ' ' + self.get_field_display()
@@ -66,7 +66,7 @@ class Classroom(models.Model):
         (B, 'ب'),
         (C, 'ج')
     )
-    branch = models.CharField(max_length=2, choices=branch_choices, default='a', null=True)
+    branch = models.CharField(max_length=2, choices=branch_choices, default='a', null=True, verbose_name='گروه', blank=True)
     education_year = models.CharField(max_length=20, null=True)
     courses = models.ManyToManyField('Course', through='TeacherClassCourse', related_name='classrooms')
     teachers = models.ManyToManyField('Teacher', through='TeacherClassCourse', related_name='classrooms')

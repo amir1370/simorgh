@@ -1,13 +1,20 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Edit</title>
-</head>
-<body>
-    <form method="post">{% csrf_token %}
-    {{ form.as_p }}
-    <input type="submit" value="Update">
-</form>
-</body>
-</html>
+{% extends 'index.html' %}
+{% load static from staticfiles %}
+
+
+{% block content2 %}
+    {% if messages %}
+    <ul>
+        {% for message in messages %}
+        <li>{{ message }}</li>
+    </ul>
+    {% endfor %}
+    {% endif %}
+    <form action="" method="post">
+        <div class="form-group">
+            {% csrf_token %}
+            {{ form.as_p }}
+        </div>
+        <button type="submit" class="btn btn-primary">ثبت</button>
+    </form>
+{% endblock %}

@@ -1,45 +1,62 @@
-from django.shortcuts import render
-from .models import Student, Classroom, Teacher, StudentCourse, Course
-from django.views.generic.edit import FormView, UpdateView, CreateView
+from django.shortcuts import render, redirect
+from .models import Student, Classroom, Teacher, StudentCourse, Course, TeacherClassCourse, User
+from django.views.generic.edit import FormView, UpdateView, CreateView, DeleteView
 from django.views.generic.list import ListView
 from django.views.generic.detail import DetailView
-from .forms import StudentForm, TeacherSearchForm, TeacherForm, StudentSearchForm, TeacherClassCourseForm, RegisterForm
+from .forms import StudentForm, TeacherSearchForm, TeacherForm, StudentSearchForm, \
+    TeacherClassCourseForm, RegisterForm, ClassroomSearchForm, ClassroomForm
 from django.db.models import Q
 import datetime
 from .serializers import StudentSerializer
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth import logout
 from django.contrib.auth.decorators import user_passes_test
 from django.utils.decorators import method_decorator
 from django.contrib.auth.models import Group
 from django.contrib.messages.views import SuccessMessageMixin
+from django.contrib.auth import login, authenticate
+from django.contrib.auth.forms import UserCreationForm
 
-
-manager_decorator = method_decorator(
-    user_passes_test(lambda u: Group.objects.get(name='manager') in u.groups.all()), name='dispatch'
+check_manager = user_passes_test(lambda u: Group.objects.get(name='manager') in u.groups.all())
+check_teacher = user_passes_test(
+    lambda u: any(
+        [(Group.objects.get(name='teacher') in u.groups.all()),
+         (Group.objects.get(name='manager') in u.groups.all())]
+    )
 )
 
 
-def class_list(request, class_id):
-    classroom = Classroom.objects.filter(id=class_id).first()
-    classroom_students = list(Student.objects.filter(classroom=classroom))
-    return render(request, 'edu/student_list.html', {'classroom_student': classroom_students})
+def student_class_list(request, class_id):
+    classroom = Classroom.objects.get(id=class_id)
+    classroom_students = list(Student.objects.filter(classrooms=classroom))
+    return render(request, 'edu/student_class_list.html',
+                  {'classroom_students': classroom_students, 'classroom': classroom})
 
-@manager_decorator
-class FormViewStudent(FormView):
+
+def teacher_class_list(request, class_id):
+    classroom = Classroom.objects.get(id=class_id)
+    classroom_teacher_course = list(TeacherClassCourse.objects.filter(classroom=classroom))
+    return render(request, 'edu/teacher_class_list.html',
+                  {'classroom_teacher_course': classroom_teacher_course, 'classroom': classroom})
+
+
+@method_decorator(check_manager, name='dispatch')
+class StudentCreateView(CreateView):
     template_name = 'edu/student_form.html'
     form_class = StudentForm
     success_url = '/dashboard/studentlist/'
 
     def form_valid(self, form):
-        form.save()
+        student_id = form.cleaned_data.pop('student_id')
+        user = form.save()
+        user.set_password('abc123456')
+        Student.objects.create(student_id=student_id, user=user, last_modified_date=datetime.datetime.now())
         my_group = Group.objects.get(name='student')
-        my_group.user_set.add(form.cleaned_data['user'])
+        my_group.user_set.add(user)
         return super().form_valid(form)
 
 
-@manager_decorator
+@method_decorator(check_manager, name='dispatch')
 class StudentListView(ListView):
     model = Student
     form_class = StudentSearchForm
@@ -70,21 +87,40 @@ class StudentListView(ListView):
         return queryset
 
 
-@manager_decorator
+@method_decorator(check_manager, name='dispatch')
 class StudentDetailView(DetailView):
     model = Student
 
-@manager_decorator
+
+@method_decorator(check_manager, name='dispatch')
 class StudentUpdateView(UpdateView):
     model = Student
     fields = ['student_id']
 
+    def get_success_url(self):
+        success_url = '/dashboard/studentlist'
+        return success_url
 
-@manager_decorator
+
+@method_decorator(check_manager, name='dispatch')
+class StudentDeleteView(DeleteView):
+    model = Student
+    success_url = '/dashboard/studentlist'
+
+
+class ProfileUpdateView(UpdateView):
+    model = User
+    fields = ['username', 'password']
+    template_name = 'edu/profile.html'
+
+    def get_success_url(self):
+        return '/dashboard/profile'
+
+
+@method_decorator(check_manager, name='dispatch')
 class TeacherListView(ListView):
     model = Teacher
     form_class = TeacherSearchForm
-
 
     def get_context_data(self, **kwargs):
         context = super(TeacherListView, self).get_context_data(**kwargs)
@@ -97,7 +133,6 @@ class TeacherListView(ListView):
     def get_queryset(self):
         queryset = super().get_queryset()
         if self.request.GET:
-
             queryset = self.filter_queryset(queryset)
         return queryset
 
@@ -121,55 +156,127 @@ class TeacherListView(ListView):
         return queryset
 
 
-@manager_decorator
+@method_decorator(check_manager, name='dispatch')
 class TeacherDetailView(DetailView):
     model = Teacher
 
 
-@manager_decorator
+@method_decorator(check_manager, name='dispatch')
 class TeacherUpdateView(UpdateView):
     model = Teacher
     fields = ['hire_date', 'education_degree']
 
+    def get_success_url(self):
+        success_url = '/dashboard/teacherlist'
+        return success_url
 
-@manager_decorator
+
+@method_decorator(check_manager, name='dispatch')
 class TeacherCreateView(CreateView):
     template_name = 'edu/teacher_form.html'
     form_class = TeacherForm
     success_url = '/dashboard/teacherlist/'
 
     def form_valid(self, form):
-        form.save()
+        user_dict={}
+        for key in ['username', 'first_name', 'last_name', 'is_active']:
+            user_dict[key] = form.cleaned_data.pop(key)
+        user = User.objects.create_user(**user_dict)
+        user.set_password('abc123456')
+        print(user.id)
+        my_teacher = form.save(commit=False)
+        my_teacher.user = user
+        my_teacher.save()
+        #form.cleaned_data.update({'user': user})
         my_group = Group.objects.get(name='teacher')
-        my_group.user_set.add(form.cleaned_data['user'])
+        my_group.user_set.add(user)
         return super().form_valid(form)
 
-@manager_decorator
+
+@method_decorator(check_manager, name='dispatch')
+class TeacherDeleteView(DeleteView):
+    model = Teacher
+    success_url = '/dashboard/teacherlist'
+
+
+@method_decorator(check_teacher, name='dispatch')
 class ClassroomListView(ListView):
     model = Classroom
+    form_class = ClassroomSearchForm
 
-@manager_decorator
+    def get_context_data(self, **kwargs):
+        context = super(ClassroomListView, self).get_context_data(**kwargs)
+        context.update({
+            'search': self.form_class()
+        })
+        return context
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        if self.request.GET:
+            queryset = self.filter_queryset(queryset)
+        return queryset
+
+    def filter_queryset(self, queryset):
+        filter_dict = {}
+        search_list = ['level', 'field', 'branch', 'education_year']
+        for item in search_list:
+            filter_dict[item] = self.request.GET.get(item)
+
+        queryset = queryset.filter(
+            Q(level_field__level__icontains=filter_dict['level'])
+            & Q(level_field__field__icontains=filter_dict['field'])
+            & Q(branch__icontains=filter_dict['branch'])
+            & Q(education_year__icontains=filter_dict['education_year'])
+        )
+        return queryset
+
+
+@method_decorator(check_manager, name='dispatch')
 class ClassroomDetailView(DetailView):
     model = Classroom
 
-@manager_decorator
+
+@method_decorator(check_manager, name='dispatch')
 class ClassroomUpdateView(UpdateView):
     model = Classroom
     fields = ['branch', 'education_year']
 
+    def get_success_url(self):
+        success_url = '/dashboard/classroomlist/'
+        return success_url
 
-class TeacherClassCourseCreateView(SuccessMessageMixin, CreateView):
-    template_name = 'edu/teacherclasscourse_form.html'
-    form_class = TeacherClassCourseForm
-    success_url = '/dashboard/teacherclasscourse/'
-    success_message = 'با موفقیت ثبت شد'
 
+@method_decorator(check_manager, name='dispatch')
+class ClassroomCreateView(CreateView):
+    template_name = 'edu/classroom_form.html'
+    form_class = ClassroomForm
+    success_url = '/dashboard/classroomlist/'
 
     def form_valid(self, form):
         form.save()
         return super().form_valid(form)
 
 
+@method_decorator(check_manager, name='dispatch')
+class ClassroomDeleteView(DeleteView):
+    model = Classroom
+    success_url = '/dashboard/classroomlist'
+
+
+@method_decorator(check_manager, name='dispatch')
+class TeacherClassCourseCreateView(SuccessMessageMixin, CreateView):
+    template_name = 'edu/teacherclasscourse_form.html'
+    form_class = TeacherClassCourseForm
+    success_url = '/dashboard/teacherclasscourse/'
+    success_message = 'با موفقیت ثبت شد'
+
+    def form_valid(self, form):
+        form.save()
+        return super().form_valid(form)
+
+
+@method_decorator(check_manager, name='dispatch')
 class RegisterCreateView(SuccessMessageMixin, CreateView):
     template_name = 'edu/register_form.html'
     form_class = RegisterForm
@@ -179,10 +286,23 @@ class RegisterCreateView(SuccessMessageMixin, CreateView):
     def form_valid(self, form):
         form.save()
         for course in Course.objects.filter(classrooms=form.cleaned_data['classroom']):
-            my_student_course = StudentCourse.objects.create(student=form.cleaned_data['student'], course=course)
-        print(form.cleaned_data)
+            my_student_course = StudentCourse.objects.get_or_create(student=form.cleaned_data['student'], course=course)
         return super().form_valid(form)
 
+
+def signup(request):
+    if request.method == 'POST':
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            form.save()
+            username = form.cleaned_data.get('username')
+            raw_password = form.cleaned_data.get('password1')
+            user = authenticate(username=username, password=raw_password)
+            login(request, user)
+            return redirect('login')
+    else:
+        form = UserCreationForm()
+    return render(request, 'signup.html', {'form': form})
 
 
 def student_list_api(request):
@@ -191,11 +311,12 @@ def student_list_api(request):
         student_serializer = StudentSerializer(students, many=True)
         return JsonResponse(student_serializer.data, safe=False)
 
+
 @login_required
 def login_view(request):
     user = request.user
     return render(request, 'index.html', {'user': user})
 
 
-def logout_view(request):
-    logout(request)
+def error_404_view(request, exception):
+    return render(request, '404.html')

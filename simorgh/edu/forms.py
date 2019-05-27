@@ -1,17 +1,31 @@
 from django.forms import ModelForm
 from django import forms
-from .models import Student, Teacher, Classroom, TeacherClassCourse, Register
+from .models import Student, Teacher, Classroom, TeacherClassCourse, Register, User
+
+
+class DateInput(forms.DateInput):
+    input_type = 'date'
+
 
 class StudentForm(ModelForm):
+    student_id = forms.IntegerField(label='شماره دانش آموزی')
     class Meta:
-        model = Student
-        exclude = ['id', 'classrooms', 'courses', 'last_modified_date']
+        model = User
+        fields = ['username', 'first_name', 'last_name', 'is_active']
 
 
 class TeacherForm(ModelForm):
+    username = forms.CharField(max_length=120, label='نام کاربری')
+    first_name = forms.CharField(max_length=150, label='نام')
+    last_name = forms.CharField(max_length=150, label='نام خانوادگی')
+    is_active = forms.BooleanField(label='فعال')
+    #user_id = forms.IntegerField(required=False)
     class Meta:
         model = Teacher
-        fields = '__all__'
+        exclude = ['user']
+        widgets = {
+            'hire_date': DateInput(),
+        }
 
 
 class TeacherSearchForm(forms.Form):
@@ -21,7 +35,7 @@ class TeacherSearchForm(forms.Form):
     to_hire_date = forms.DateField(required=False, label='تا تاریخ')
     DIPLOMA, ASSOCIATE, BACHELOR, MASTER, PHD, EMPTY = 'DP', 'AS', 'BA', 'MA', 'PHD', None
     degree_choices = (
-        (EMPTY, 'همه موارد'),
+        (EMPTY, '-----'),
         (DIPLOMA, 'دیپلم'),
         (ASSOCIATE, 'فوق دیپلم'),
         (BACHELOR, 'لیسانس'),
@@ -30,10 +44,20 @@ class TeacherSearchForm(forms.Form):
     )
     education_degree = forms.ChoiceField(choices=degree_choices, initial='', required=False, label='مدرک تحصیلی')
 
+    def __init__(self, *args, **kwargs):
+        super(TeacherSearchForm, self).__init__(*args, **kwargs)
+        for visible in self.visible_fields():
+            visible.field.widget.attrs['class'] = 'form-control mb-3'
+
 
 class StudentSearchForm(forms.Form):
     first_name = forms.CharField(max_length=20, required=False, label='نام')
     last_name = forms.CharField(max_length=20, required=False, label='نام خانوادگی')
+
+    def __init__(self, *args, **kwargs):
+        super(StudentSearchForm, self).__init__(*args, **kwargs)
+        for visible in self.visible_fields():
+            visible.field.widget.attrs['class'] = 'form-control mb-3'
 
 
 class ClassroomForm(ModelForm):
@@ -45,7 +69,7 @@ class ClassroomForm(ModelForm):
 class ClassroomSearchForm(forms.Form):
     FIRST, SECOND, THIRD, EMPTY = 'first', 'second', 'third', None
     level_choices = (
-        (EMPTY, 'همه موارد'),
+        (EMPTY, '-----'),
         (FIRST, 'اول'),
         (SECOND, 'دوم'),
         (THIRD, 'سوم')
@@ -53,7 +77,7 @@ class ClassroomSearchForm(forms.Form):
     level = forms.ChoiceField(choices=level_choices, required=False, label='پایه')
     MATH, NATURAL, HUMANITY, EMPTY = 'math', 'natural', 'humanity', None
     field_choices = (
-        (EMPTY, 'همه موارد'),
+        (EMPTY, '-----'),
         (MATH, 'ریاضی'),
         (NATURAL, 'تجربی'),
         (HUMANITY, 'انسانی')
@@ -61,13 +85,18 @@ class ClassroomSearchForm(forms.Form):
     field = forms.ChoiceField(choices=field_choices, required=False, label='رشته')
     A, B, C, EMPTY = 'a', 'b', 'c', None
     branch_choices = (
-        (EMPTY, 'همه موارد'),
+        (EMPTY, '-----'),
         (A, 'الف'),
         (B, 'ب'),
         (C, 'ج')
     )
     branch = forms.ChoiceField(choices=branch_choices, required=False, label='گروه')
     education_year = forms.CharField(max_length=20, required=False, label='سال تحصیلی')
+
+    def __init__(self, *args, **kwargs):
+        super(ClassroomSearchForm, self).__init__(*args, **kwargs)
+        for visible in self.visible_fields():
+            visible.field.widget.attrs['class'] = 'form-control mb-3'
 
 
 class TeacherClassCourseForm(ModelForm):
@@ -79,4 +108,10 @@ class TeacherClassCourseForm(ModelForm):
 class RegisterForm(ModelForm):
     class Meta:
         model = Register
+        fields = '__all__'
+
+
+class UserForm(ModelForm):
+    class Meta:
+        model = User
         fields = '__all__'

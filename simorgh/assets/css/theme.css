@@ -1,4 +1,4 @@
-/*------------------------------------------------------------------
+ّ/*------------------------------------------------------------------
 [Master Stylesheet]
 
 Project:  CoolAdmin
@@ -104,7 +104,7 @@ p {
 
 /* ----- Typography ----- */
 body {
-    font-family: 'IranSans'
+    font-family:'IranSans';
     font-weight: 400;
     font-size: 16px;
     line-height: 1.625;
@@ -285,7 +285,7 @@ section {
 
 .page-container {
     background: #e5e5e5;
-    padding-right: 300px;
+    padding-right: 250px;
 }
 
 @media (max-width: 991px) {
@@ -298,7 +298,7 @@ section {
 
 .page-container2 {
     background: #f2f2f2;
-    padding-left: 300px;
+    padding-left: 250px;
 }
 
 @media (max-width: 991px) {
@@ -1186,7 +1186,7 @@ section {
     position: fixed;
     top: 0;
     left: 0;
-    right: 300px;
+    right: 250px;
     height: 75px;
     z-index: 3;
 }
@@ -1574,13 +1574,14 @@ section {
 }
 
 .menu-sidebar {
-    width: 300px;
+    width: 250px;
     position: fixed;
     right: 0;
     top: 0;
     bottom: 0;
     background: #fff;
     overflow-y: auto;
+
 }
 
 .menu-sidebar .logo {
@@ -1623,7 +1624,7 @@ section {
 }
 
 .navbar-sidebar {
-    padding: 35px;
+    padding: 0px;
     padding-bottom: 0;
 }
 

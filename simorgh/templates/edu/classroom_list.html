@@ -1,50 +1,92 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css">
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.6/umd/popper.min.js"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.2.1/js/bootstrap.min.js"></script>
-    <title>Students_list</title>
-</head>
-<body>
-    <div class="container mt-5">
-        <table class="table table-hover">
-        <tr>
-            <th>education level</th>
-            <th>education field</th>
-            <th>branch</th>
-            <th>classroom detail</th>
-            <th>classroom edit</th>
-        </tr>
+{% extends 'index.html' %}
+{% load static from staticfiles %}
+{% load auth_group %}
 
-        {% for classroom in object_list %}
-        <tr>
-            <td>
-                {{ classroom.level_field.level }}
-            </td>
-            <td>
-                {{ classroom.level_field.field }}
-            </td>
-            <td>
-                {{ classroom.branch }}
-            </td>
-            <td>
-                <a href="/class/home/classrooms/{{ classroom.pk }}/">
-                    detail
-                </a>
 
-            </td>
-            <td>
-                <a href="/class/home/classrooms/{{ classroom.pk }}/edit">
-                    edit
-                </a>
-            </td>
-        </tr>
-        {% endfor %}
-        </table>
+{% block content2 %}
+
+    <div class="row">
+        <div class="col-9">
+            <h4 class="text-center m-auto">لیست کلاس ها</h4>
+            <a href="/dashboard/classroomform/" class="ml-3">
+                <h2 class="text-primary"><i class="zmdi zmdi-collection-add"></i></h2>
+            </a>
+            <div class="bg-light m-2">
+                <table class="table table-hover" style="text-align: center">
+                    <tr>
+                        <th>کلاس</th>
+                        <th>سال تحصیلی</th>
+                        <th>دانش آموزان</th>
+                        <th>معلمان</th>
+                        {% if request.user|has_group:"manager" %}
+                            <th>جزئیات</th>
+                            <th>ویرایش</th>
+                            <th>حذف</th>
+                        {% endif %}
+                    </tr>
+
+                    {% for classroom in object_list %}
+                        <tr>
+                            <td>
+                                {{ classroom.level_field.get_level_display }} {{ classroom.level_field.get_field_display }} {{ classroom.get_branch_display }}
+                            </td>
+                            <td>
+                                {{ classroom.education_year }}
+                            </td>
+                            <td>
+                                <a href="/dashboard/classrooms/{{ classroom.pk }}/students">
+                                    <i class="zmdi zmdi-accounts-list"></i>
+                                </a>
+
+                            </td>
+                            <td>
+                                <a href="/dashboard/classrooms/{{ classroom.pk }}/teachers">
+                                    <i class="zmdi zmdi-accounts-list-alt"></i>
+                                </a>
+                            </td>
+                            {% if request.user|has_group:"manager" %}
+                                <td>
+                                    <a href="/dashboard/classrooms/{{ classroom.pk }}/">
+                                        <i class="fas fa-info-circle"></i>
+                                    </a>
+
+                                </td>
+                                <td>
+                                    <a href="/dashboard/classrooms/{{ classroom.pk }}/edit">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                </td>
+
+                                <td>
+                                    <a href="/dashboard/classrooms/{{ classroom.pk }}/delete">
+                                        <i class="zmdi zmdi-delete text-danger"></i>
+                                    </a>
+                                </td>
+                            {% endif %}
+                        </tr>
+                    {% endfor %}
+                </table>
+            </div>
+        </div>
+
+        <div class="col-3">
+            <div class="bg-light m-2">
+                <div class="row bg-info m-0 align-content-center p-2">
+                    <h4 class="text-center m-auto">فیلتر</h4>
+                </div>
+                <div class="p-4" style="text-align: right">
+                    <form action="" method="get" class="form-horizontal p-auto">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            {{ search.as_p }}
+                        </div>
+
+                        <input type="submit" class="btn btn-primary mt-5" value="Search"/>
+                    </form>
+                </div>
+            </div>
+        </div>
     </div>
 
-</body>
-</html>
+
+{% endblock %}
