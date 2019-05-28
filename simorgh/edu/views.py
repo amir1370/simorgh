@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect
-from .models import Student, Classroom, Teacher, StudentCourse, Course, TeacherClassCourse, User
+from .models import Student, Classroom, Teacher, StudentCourse, Course, TeacherClassCourse, User, ClassTime
 from django.views.generic.edit import FormView, UpdateView, CreateView, DeleteView
 from django.views.generic.list import ListView
 from django.views.generic.detail import DetailView
@@ -16,6 +16,10 @@ from django.contrib.auth.models import Group
 from django.contrib.messages.views import SuccessMessageMixin
 from django.contrib.auth import login, authenticate
 from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth import update_session_auth_hash
+from django.contrib.auth.forms import PasswordChangeForm
+from django.contrib import messages
+from django.urls import reverse_lazy
 
 check_manager = user_passes_test(lambda u: Group.objects.get(name='manager') in u.groups.all())
 check_teacher = user_passes_test(
@@ -26,15 +30,15 @@ check_teacher = user_passes_test(
 )
 
 
-def student_class_list(request, class_id):
-    classroom = Classroom.objects.get(id=class_id)
+def student_class_list(request, pk):
+    classroom = Classroom.objects.get(id=pk)
     classroom_students = list(Student.objects.filter(classrooms=classroom))
     return render(request, 'edu/student_class_list.html',
                   {'classroom_students': classroom_students, 'classroom': classroom})
 
 
-def teacher_class_list(request, class_id):
-    classroom = Classroom.objects.get(id=class_id)
+def teacher_class_list(request, pk):
+    classroom = Classroom.objects.get(id=pk)
     classroom_teacher_course = list(TeacherClassCourse.objects.filter(classroom=classroom))
     return render(request, 'edu/teacher_class_list.html',
                   {'classroom_teacher_course': classroom_teacher_course, 'classroom': classroom})
@@ -110,7 +114,7 @@ class StudentDeleteView(DeleteView):
 
 class ProfileUpdateView(UpdateView):
     model = User
-    fields = ['username', 'password']
+    fields = ['username', 'password', 'email']
     template_name = 'edu/profile.html'
 
     def get_success_url(self):
@@ -178,7 +182,7 @@ class TeacherCreateView(CreateView):
     success_url = '/dashboard/teacherlist/'
 
     def form_valid(self, form):
-        user_dict={}
+        user_dict = {}
         for key in ['username', 'first_name', 'last_name', 'is_active']:
             user_dict[key] = form.cleaned_data.pop(key)
         user = User.objects.create_user(**user_dict)
@@ -187,7 +191,7 @@ class TeacherCreateView(CreateView):
         my_teacher = form.save(commit=False)
         my_teacher.user = user
         my_teacher.save()
-        #form.cleaned_data.update({'user': user})
+        # form.cleaned_data.update({'user': user})
         my_group = Group.objects.get(name='teacher')
         my_group.user_set.add(user)
         return super().form_valid(form)
@@ -268,12 +272,35 @@ class ClassroomDeleteView(DeleteView):
 class TeacherClassCourseCreateView(SuccessMessageMixin, CreateView):
     template_name = 'edu/teacherclasscourse_form.html'
     form_class = TeacherClassCourseForm
-    success_url = '/dashboard/teacherclasscourse/'
+    #success_url = reverse('edu:teacherclasscourse')
     success_message = 'با موفقیت ثبت شد'
 
+    def get_success_url(self):
+        return reverse_lazy('edu:classroom_teachers', kwargs={'pk': self.kwargs['pk']})
+
+    def get_context_data(self, **kwargs):
+        context = super(TeacherClassCourseCreateView, self).get_context_data(**kwargs)
+        classroom = Classroom.objects.get(id=self.kwargs['pk'])
+        object_list = []
+        for my_object in list(TeacherClassCourse.objects.filter(classroom=classroom)):
+            object_list.append(my_object)
+        time_list = list(ClassTime.objects.filter(~Q(teacher_class_course__in=object_list)))
+        print(time_list)
+        context.update({
+            'classroom': Classroom.objects.get(id=self.kwargs['pk'])
+        })
+        return context
+
     def form_valid(self, form):
-        form.save()
+        my_teacher_course = form.save(commit=False)
+        my_teacher_course.classroom = Classroom.objects.get(id=self.kwargs['pk'])
+        my_teacher_course.save()
         return super().form_valid(form)
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['pk'] = self.kwargs['pk']
+        return kwargs
 
 
 @method_decorator(check_manager, name='dispatch')
@@ -320,3 +347,30 @@ def login_view(request):
 
 def error_404_view(request, exception):
     return render(request, '404.html')
+
+
+def change_password(request):
+    if request.method == 'POST':
+        form = PasswordChangeForm(request.user, request.POST)
+        if form.is_valid():
+            user = form.save()
+            update_session_auth_hash(request, user)  # Important!
+            messages.success(request, 'Your password was successfully updated!')
+            return redirect('change_password')
+        else:
+            messages.error(request, 'Please correct the error below.')
+    else:
+        form = PasswordChangeForm(request.user)
+    print(form)
+    return render(request, 'edu/change_password.html', {
+        'form': form
+    })
+
+def weekly_schedule(request, pk):
+    classroom = Classroom.objects.get(id=pk)
+    context = {}
+    context['classroom'] = classroom
+    for my_object in list(TeacherClassCourse.objects.filter(classroom=classroom)):
+        for class_time in list(ClassTime.objects.filter(teacher_class_course=my_object)):
+            context['part_day{}'.format(class_time.id)] = str(my_object.course) + ' ' + '({})'.format(my_object.teacher.user.last_name)
+    return render(request, 'edu/weekly_schedule.html', context)

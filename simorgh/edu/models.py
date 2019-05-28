@@ -101,4 +101,31 @@ class TeacherClassCourse(models.Model):
     teacher = models.ForeignKey('Teacher', related_name='teacher_class_courses', on_delete=models.SET_NULL, null=True, verbose_name='معلم')
     classroom = models.ForeignKey('Classroom', related_name='teacher_class_courses', on_delete=models.SET_NULL, null=True, verbose_name='کلاس')
     course = models.ForeignKey('Course', related_name='teacher_class_courses', on_delete=models.SET_NULL, null=True, verbose_name='دزس')
-    class_time = models.CharField(max_length=100, verbose_name='زمان کلاس')
+    class_time = models.ManyToManyField('ClassTime', related_name='teacher_class_course', verbose_name='زمان کلاس')
+
+    def __str__(self):
+        return str(self.classroom) + ' ' + str(self.course) + ' ' + str(self.teacher)
+
+class ClassTime(models.Model):
+    A, B, C, D = '1', '2', '3', '4'
+    part_choices = (
+        (A, 'زنگ اول'),
+        (B, 'زنگ دوم'),
+        (C, 'زنگ سوم'),
+        (D, 'زنگ چهارم')
+    )
+    part = models.CharField(max_length=20, choices=part_choices, default='1', null=True, verbose_name='زنگ',
+                              blank=True)
+    Saturday, Sunday, Monday, Tuesday, Wednesday = 'Sa', 'Su', 'Mo', 'Tu', 'We'
+    day_choices = (
+        (Saturday, 'شنبه'),
+        (Sunday, 'یکشنبه'),
+        (Monday, 'دوشنبه'),
+        (Tuesday, 'سه شنبه'),
+        (Wednesday, 'چهارشنبه')
+    )
+    day = models.CharField(max_length=20, choices=day_choices, default='Sa', null=True, verbose_name='روز',
+                            blank=True)
+    def __str__(self):
+        return self.get_day_display() + ' ' + self.get_part_display()
+

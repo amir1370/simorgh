@@ -1,20 +1,44 @@
 {% extends 'index.html' %}
 {% load static from staticfiles %}
-
+{% load widget_tweaks %}
 
 {% block content2 %}
-    {% if messages %}
-    <ul>
-        {% for message in messages %}
-        <li>{{ message }}</li>
-    </ul>
-    {% endfor %}
-    {% endif %}
-    <form action="" method="post">
-        <div class="form-group">
-            {% csrf_token %}
-            {{ form.as_p }}
+    <div class="login-wrap pb-4">
+        <div class="login-content border-success bg-light">
+            <h3 class="text-center">ثبت نام دانش آموز در کلاس</h3>
+            {% if messages %}
+                <ul>
+                    {% for message in messages %}
+                        <li>{{ message }}</li>
+                        </ul>
+                    {% endfor %}
+            {% endif %}
+            <div class="login-form">
+                <form action="" method="post">
+
+                    {% csrf_token %}
+                    {{ form.non_field_errors }}
+                    <div class="form-group">
+                        {{ form.student.erorrs }}
+                        <label for="{{ form.student.id_for_label }}">دانش آموز</label>
+                        {% render_field form.student class+="au-input au-input--full" %}
+                    </div>
+                    <div class="form-group">
+                        {{ form.classroom.errors }}
+                        <label for="{{ form.classroom.id_for_label }}">کلاس</label>
+                        {% render_field form.classroom class+="au-input au-input--full" %}
+                    </div>
+                    <div class="login-checkbox">
+                        {{ form.is_active.errors }}
+                        <label for="{{ form.is_active.id_for_label }}">
+                            {% render_field form.is_active %} فعال </label>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">ثبت</button>
+                </form>
+            </div>
         </div>
-        <button type="submit" class="btn btn-primary">ثبت</button>
-    </form>
+    </div>
+
 {% endblock %}
+

@@ -28,7 +28,9 @@
                     {% for classroom in object_list %}
                         <tr>
                             <td>
-                                {{ classroom.level_field.get_level_display }} {{ classroom.level_field.get_field_display }} {{ classroom.get_branch_display }}
+                                <a href="/dashboard/classrooms/{{ classroom.pk }}/schedule">
+                                    {{ classroom.level_field.get_level_display }} {{ classroom.level_field.get_field_display }} {{ classroom.get_branch_display }}
+                                </a>
                             </td>
                             <td>
                                 {{ classroom.education_year }}

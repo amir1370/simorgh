@@ -7,6 +7,7 @@ urlpatterns = [
     url(r'^login/$', auth_views.LoginView.as_view(template_name='login.html', redirect_field_name='index.html')),
     url(r'^logout/$', auth_views.LogoutView.as_view(redirect_field_name='login.html'), name='logout'),
     url(r'^signup/$', views.signup, name='signup'),
+    url(r'^password/$', views.change_password, name='change_password'),
     url(r'^dashboard/$', views.login_view),
     url(r'^dashboard/studentform/$', views.StudentCreateView.as_view()),
     url(r'^dashboard/profile/(?P<pk>[0-9]+)/$', views.ProfileUpdateView.as_view(), name='profile'),
@@ -24,9 +25,10 @@ urlpatterns = [
     url(r'^dashboard/classrooms/(?P<pk>[0-9]+)/$', views.ClassroomDetailView.as_view(), name='classroomdetail'),
     url(r'^dashboard/classrooms/(?P<pk>[0-9]+)/edit$', views.ClassroomUpdateView.as_view(), name='classroomedit'),
     url(r'^dashboard/classrooms/(?P<pk>[0-9]+)/delete$', views.ClassroomDeleteView.as_view(), name='classroomdelete'),
-    url(r'^dashboard/classrooms/(?P<class_id>[0-9]+)/students$', views.student_class_list, name='classroom_students'),
-    url(r'^dashboard/classrooms/(?P<class_id>[0-9]+)/teachers$', views.teacher_class_list, name='classroom_teachers'),
-    url(r'^dashboard/teacherclasscourse/$', views.TeacherClassCourseCreateView.as_view(), name='teacherclasscourse'),
+    url(r'^dashboard/classrooms/(?P<pk>[0-9]+)/students$', views.student_class_list, name='classroom_students'),
+    url(r'^dashboard/classrooms/(?P<pk>[0-9]+)/teachers$', views.teacher_class_list, name='classroom_teachers'),
+    url(r'^dashboard/classrooms/(?P<pk>[0-9]+)/teachercourse$', views.TeacherClassCourseCreateView.as_view(), name='teacherclasscourse'),
+    url(r'^dashboard/classrooms/(?P<pk>[0-9]+)/schedule$', views.weekly_schedule, name='weekly_schedule'),
     url(r'^dashboard/studentregister/$', views.RegisterCreateView.as_view(), name='student_register'),
     url(r'students/api/$', views.student_list_api)
 ]

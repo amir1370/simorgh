@@ -1,6 +1,8 @@
 from django.forms import ModelForm
 from django import forms
-from .models import Student, Teacher, Classroom, TeacherClassCourse, Register, User
+from .models import Student, Teacher, Classroom, TeacherClassCourse, Register, User, ClassTime, Course
+from django.forms.widgets import CheckboxSelectMultiple
+from django.db.models import Q
 
 
 class DateInput(forms.DateInput):
@@ -9,6 +11,7 @@ class DateInput(forms.DateInput):
 
 class StudentForm(ModelForm):
     student_id = forms.IntegerField(label='شماره دانش آموزی')
+
     class Meta:
         model = User
         fields = ['username', 'first_name', 'last_name', 'is_active']
@@ -19,7 +22,8 @@ class TeacherForm(ModelForm):
     first_name = forms.CharField(max_length=150, label='نام')
     last_name = forms.CharField(max_length=150, label='نام خانوادگی')
     is_active = forms.BooleanField(label='فعال')
-    #user_id = forms.IntegerField(required=False)
+
+    # user_id = forms.IntegerField(required=False)
     class Meta:
         model = Teacher
         exclude = ['user']
@@ -102,8 +106,17 @@ class ClassroomSearchForm(forms.Form):
 class TeacherClassCourseForm(ModelForm):
     class Meta:
         model = TeacherClassCourse
-        fields = '__all__'
+        exclude = ['classroom']
 
+    def __init__(self, *args, **kwargs):
+        pk = kwargs.pop('pk')
+        super().__init__(*args, **kwargs)
+        classroom = Classroom.objects.get(id=pk)
+        object_list = []
+        for my_object in list(TeacherClassCourse.objects.filter(classroom=classroom)):
+            object_list.append(my_object)
+        self.fields['class_time'].queryset = ClassTime.objects.filter(~Q(teacher_class_course__in=object_list))
+        self.fields['course'].queryset = Course.objects.filter(~Q(teacher_class_courses__in=object_list))
 
 class RegisterForm(ModelForm):
     class Meta:

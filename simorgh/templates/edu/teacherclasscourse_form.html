@@ -1,20 +1,46 @@
 {% extends 'index.html' %}
 {% load static from staticfiles %}
-
+{% load widget_tweaks %}
 
 {% block content2 %}
-    {% if messages %}
-    <ul>
-        {% for message in messages %}
-        <li>{{ message }}</li>
-    </ul>
-    {% endfor %}
-    {% endif %}
-    <form action="" method="post">
-        <div class="form-group">
-            {% csrf_token %}
-            {{ form.as_p }}
+    <div class="login-wrap pb-4">
+        <div class="login-content border-success bg-light">
+            <h3 class="text-center">
+                {{ classroom.level_field.get_level_display }} {{ classroom.level_field.get_field_display }} {{ classroom.get_branch_display }}
+            </h3>
+            {% if messages %}
+                <ul>
+                    {% for message in messages %}
+                        <li>{{ message }}</li>
+                        </ul>
+                    {% endfor %}
+            {% endif %}
+            <div class="login-form">
+                <form action="" method="post">
+
+                    {% csrf_token %}
+                    {{ form.non_field_errors }}
+                    <div class="form-group">
+                        {{ form.teacher.erorrs }}
+                        <label for="{{ form.teacher.id_for_label }}">معلم :</label>
+                        {% render_field form.teacher class+="au-input au-input--full" %}
+                    </div>
+                    <div class="form-group">
+                        {{ form.course.errors }}
+                        <label for="{{ form.course.id_for_label }}">درس :</label>
+                        {% render_field form.course class+="au-input au-input--full" %}
+                    </div>
+                    <div class="form-group">
+                        {{ form.class_time.errors }}
+                        <label for="{{ form.class_time.id_for_label }}">زمان برگزاری :</label>
+                        {% render_field form.class_time class+="au-input au-input--full" %}
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">ثبت</button>
+                </form>
+            </div>
         </div>
-        <button type="submit" class="btn btn-primary">ثبت</button>
-    </form>
+    </div>
+
 {% endblock %}
+

@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Course, Teacher, Classroom, Student, LevelField, TeacherClassCourse, StudentCourse, Register
+from .models import Course, Teacher, Classroom, Student, LevelField, TeacherClassCourse, StudentCourse, Register, ClassTime
 
 class TeacherAdmin(admin.ModelAdmin):
     # list_display = ('user', 'hire_date', 'profession')
@@ -17,5 +17,6 @@ admin.site.register(LevelField)
 admin.site.register(TeacherClassCourse)
 admin.site.register(StudentCourse)
 admin.site.register(Register)
+admin.site.register(ClassTime)
 
 
