@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'crispy_forms',
     'widget_tweaks',
+    "directmessages",
 ]
 
 CRISPY_TEMPLATE_PACK = 'bootstrap4'

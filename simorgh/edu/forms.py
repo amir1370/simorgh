@@ -3,6 +3,7 @@ from django import forms
 from .models import Student, Teacher, Classroom, TeacherClassCourse, Register, User, ClassTime, Course
 from django.forms.widgets import CheckboxSelectMultiple
 from django.db.models import Q
+from directmessages.models import Message
 
 
 class DateInput(forms.DateInput):
@@ -127,4 +128,10 @@ class RegisterForm(ModelForm):
 class UserForm(ModelForm):
     class Meta:
         model = User
+        fields = '__all__'
+
+
+class MessageForm(ModelForm):
+    class Meta:
+        model = Message
         fields = '__all__'

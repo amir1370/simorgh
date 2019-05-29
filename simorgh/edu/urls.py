@@ -4,11 +4,11 @@ from django.contrib.auth import views as auth_views
 
 app_name = 'edu'
 urlpatterns = [
-    url(r'^login/$', auth_views.LoginView.as_view(template_name='login.html', redirect_field_name='index.html')),
+    url(r'^login/$', auth_views.LoginView.as_view(template_name='login.html', redirect_field_name='edu/dashboard.html')),
     url(r'^logout/$', auth_views.LogoutView.as_view(redirect_field_name='login.html'), name='logout'),
     url(r'^signup/$', views.signup, name='signup'),
     url(r'^password/$', views.change_password, name='change_password'),
-    url(r'^dashboard/$', views.login_view),
+    url(r'^dashboard/$', views.MessageListView.as_view(), name='messagelist'),
     url(r'^dashboard/studentform/$', views.StudentCreateView.as_view()),
     url(r'^dashboard/profile/(?P<pk>[0-9]+)/$', views.ProfileUpdateView.as_view(), name='profile'),
     url(r'^dashboard/studentlist/$', views.StudentListView.as_view(), name='studentlist'),

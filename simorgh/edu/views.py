@@ -4,7 +4,7 @@ from django.views.generic.edit import FormView, UpdateView, CreateView, DeleteVi
 from django.views.generic.list import ListView
 from django.views.generic.detail import DetailView
 from .forms import StudentForm, TeacherSearchForm, TeacherForm, StudentSearchForm, \
-    TeacherClassCourseForm, RegisterForm, ClassroomSearchForm, ClassroomForm
+    TeacherClassCourseForm, RegisterForm, ClassroomSearchForm, ClassroomForm, MessageForm
 from django.db.models import Q
 import datetime
 from .serializers import StudentSerializer
@@ -20,6 +20,9 @@ from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib import messages
 from django.urls import reverse_lazy
+from directmessages.apps import Inbox
+from directmessages.models import Message
+import jdatetime
 
 check_manager = user_passes_test(lambda u: Group.objects.get(name='manager') in u.groups.all())
 check_teacher = user_passes_test(
@@ -57,6 +60,8 @@ class StudentCreateView(CreateView):
         Student.objects.create(student_id=student_id, user=user, last_modified_date=datetime.datetime.now())
         my_group = Group.objects.get(name='student')
         my_group.user_set.add(user)
+        Inbox.send_message(self.request.user, user, 'به پورتال آموزشی سیمرغ خوش آمدید')
+        Inbox.send_message(self.request.user, user, 'لطفا پروفایل خود را کامل کنید.')
         return super().form_valid(form)
 
 
@@ -185,12 +190,14 @@ class TeacherCreateView(CreateView):
         user_dict = {}
         for key in ['username', 'first_name', 'last_name', 'is_active']:
             user_dict[key] = form.cleaned_data.pop(key)
-        user = User.objects.create_user(**user_dict)
-        user.set_password('abc123456')
+        user = User.objects.create_user(password='abc123456', **user_dict)
+        # user.set_password('abc123456')
         print(user.id)
         my_teacher = form.save(commit=False)
         my_teacher.user = user
         my_teacher.save()
+        Inbox.send_message(self.request.user, user, 'به پورتال آموزشی سیمرغ خوش آمدید')
+        Inbox.send_message(self.request.user, user, 'لطفا پروفایل خود را کامل کنید.')
         # form.cleaned_data.update({'user': user})
         my_group = Group.objects.get(name='teacher')
         my_group.user_set.add(user)
@@ -272,7 +279,7 @@ class ClassroomDeleteView(DeleteView):
 class TeacherClassCourseCreateView(SuccessMessageMixin, CreateView):
     template_name = 'edu/teacherclasscourse_form.html'
     form_class = TeacherClassCourseForm
-    #success_url = reverse('edu:teacherclasscourse')
+    # success_url = reverse('edu:teacherclasscourse')
     success_message = 'با موفقیت ثبت شد'
 
     def get_success_url(self):
@@ -342,7 +349,7 @@ def student_list_api(request):
 @login_required
 def login_view(request):
     user = request.user
-    return render(request, 'index.html', {'user': user})
+    return render(request, 'edu/dashboard.html', {'user': user})
 
 
 def error_404_view(request, exception):
@@ -366,11 +373,33 @@ def change_password(request):
         'form': form
     })
 
+
 def weekly_schedule(request, pk):
     classroom = Classroom.objects.get(id=pk)
     context = {}
     context['classroom'] = classroom
     for my_object in list(TeacherClassCourse.objects.filter(classroom=classroom)):
         for class_time in list(ClassTime.objects.filter(teacher_class_course=my_object)):
-            context['part_day{}'.format(class_time.id)] = str(my_object.course) + ' ' + '({})'.format(my_object.teacher.user.last_name)
+            context['part_day{}'.format(class_time.id)] = str(my_object.course) + ' ' + '({})'.format(
+                my_object.teacher.user.last_name)
     return render(request, 'edu/weekly_schedule.html', context)
+
+
+class MessageListView(ListView):
+    model = Message
+    template_name = 'edu/dashboard.html'
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        queryset = queryset.filter(recipient=self.request.user)
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super(MessageListView, self).get_context_data(**kwargs)
+        message_list = list(context['message_list'])
+        # for message in message_list:
+        #     message.sent_at = jdatetime.date.fromgregorian(datetime=message.sent_at.datetime)
+        #     print(message.sent_at)
+        # print(message_list[0].sent_at)
+        return context
+
