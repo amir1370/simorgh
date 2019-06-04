@@ -1,14 +1,18 @@
+from django.contrib.auth.mixins import UserPassesTestMixin
 from django.shortcuts import render, redirect
-from .models import Student, Classroom, Teacher, StudentCourse, Course, TeacherClassCourse, User, ClassTime
+from django.views.decorators.csrf import csrf_exempt
+
+from .models import Student, Classroom, Teacher, StudentCourse, Course, TeacherClassCourse, \
+    User, ClassTime, Register, Assignment
 from django.views.generic.edit import FormView, UpdateView, CreateView, DeleteView
 from django.views.generic.list import ListView
 from django.views.generic.detail import DetailView
 from .forms import StudentForm, TeacherSearchForm, TeacherForm, StudentSearchForm, \
-    TeacherClassCourseForm, RegisterForm, ClassroomSearchForm, ClassroomForm, MessageForm
+    TeacherClassCourseForm, RegisterForm, ClassroomSearchForm, ClassroomForm, MessageForm, AssignmentForm, UserForm
 from django.db.models import Q
 import datetime
 from .serializers import StudentSerializer
-from django.http import JsonResponse
+from django.http import JsonResponse, Http404, HttpResponseRedirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.decorators import user_passes_test
 from django.utils.decorators import method_decorator
@@ -19,7 +23,7 @@ from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib import messages
-from django.urls import reverse_lazy
+from django.urls import reverse_lazy, reverse
 from directmessages.apps import Inbox
 from directmessages.models import Message
 import jdatetime
@@ -72,27 +76,43 @@ class StudentListView(ListView):
 
     def get_context_data(self, **kwargs):
         context = super(StudentListView, self).get_context_data(**kwargs)
+
+        form_data = self.form_class()
+        filter_dict = {}
+        search_list = ['first_name', 'last_name', 'field']
+        for item in search_list:
+            filter_dict[item] = self.request.GET.get(item)
+        form_data = self.form_class(initial=filter_dict)
         context.update({
-            'search': self.form_class()
+            'search': form_data
         })
         return context
 
     def get_queryset(self):
         queryset = super().get_queryset()
+        if 'pk' in self.kwargs.keys():
+            queryset = Student.objects.filter(classrooms=Classroom.objects.get(id=self.kwargs['pk']))
         if self.request.GET:
             queryset = self.filter_queryset(queryset)
         return queryset
 
     def filter_queryset(self, queryset):
         filter_dict = {}
-        search_list = ['first_name', 'last_name']
+        search_list = ['first_name', 'last_name', 'field']
         for item in search_list:
             filter_dict[item] = self.request.GET.get(item)
 
         queryset = queryset.filter(
-            Q(user__first_name__icontains=filter_dict['first_name'])
-            & Q(user__last_name__icontains=filter_dict['last_name'])
+            user__first_name__icontains=filter_dict['first_name'],
+            user__last_name__icontains=filter_dict['last_name'],
+            registers__is_active=True,
+            registers__classroom__level_field__field__icontains=filter_dict['field']
         )
+        # queryset = register_list_queryset.filter(
+        #     student__user__first_name__icontains=filter_dict['first_name']
+        #     , student__user__last_name__icontains=filter_dict['last_name']
+        # )
+        print(queryset.values())
         return queryset
 
 
@@ -117,13 +137,28 @@ class StudentDeleteView(DeleteView):
     success_url = '/dashboard/studentlist'
 
 
-class ProfileUpdateView(UpdateView):
+# method_decorator(login_required, name='dispatch')
+class ProfileUpdateView(UserPassesTestMixin, UpdateView):
     model = User
-    fields = ['username', 'password', 'email']
-    template_name = 'edu/profile.html'
+    template_name = 'edu/user_form.html'
+    form_class = UserForm
 
     def get_success_url(self):
-        return '/dashboard/profile'
+        success_url = '/dashboard'
+        return success_url
+
+    def test_func(self):
+        if self.request.user.id == int(self.kwargs['pk']):
+            print(True)
+            return True
+        else:
+            if self.request.user.is_authenticated():
+                raise Http404("You are not authenticated to edit this profile")
+
+    def form_valid(self, form):
+        print(form)
+        form.save()
+        return super().form_valid(form)
 
 
 @method_decorator(check_manager, name='dispatch')
@@ -210,7 +245,7 @@ class TeacherDeleteView(DeleteView):
     success_url = '/dashboard/teacherlist'
 
 
-@method_decorator(check_teacher, name='dispatch')
+@method_decorator((check_teacher, csrf_exempt), name='dispatch')
 class ClassroomListView(ListView):
     model = Classroom
     form_class = ClassroomSearchForm
@@ -224,6 +259,8 @@ class ClassroomListView(ListView):
 
     def get_queryset(self):
         queryset = super().get_queryset()
+        if Group.objects.get(name='teacher') in self.request.user.groups.all():
+            queryset = queryset.filter(teachers=Teacher.objects.get(user=self.request.user))
         if self.request.GET:
             queryset = self.filter_queryset(queryset)
         return queryset
@@ -403,3 +440,51 @@ class MessageListView(ListView):
         # print(message_list[0].sent_at)
         return context
 
+
+class AssignmentListView(ListView):
+    model = Assignment
+    template_name = 'edu/assignment_list.html'
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        if Group.objects.get(name='teacher') in self.request.user.groups.all():
+            queryset = queryset.filter(teacher_class_course__teacher__user=self.request.user)
+        elif Group.objects.get(name='student') in self.request.user.groups.all():
+            queryset = queryset.filter(teacher_class_course__classroom__students=self.request.user.student)
+        return queryset
+
+
+@method_decorator(check_teacher, name='dispatch')
+class AssignmentCreateView(SuccessMessageMixin, CreateView):
+    template_name = 'edu/assignment_form.html'
+    form_class = AssignmentForm
+    success_url = '/dashboard/assignmentlist/'
+    success_message = 'با موفقیت ثبت شد'
+
+    def form_valid(self, form):
+        assignment = form.save(commit=False)
+        assignment.sent_time = datetime.datetime.now()
+        assignment.save()
+        for student in list(assignment.teacher_class_course.classroom.students.all()):
+            Inbox.send_message(self.request.user, student.user, assignment.description)
+        return super().form_valid(form)
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['user'] = self.request.user
+        return kwargs
+
+
+@check_teacher
+def send_message_view(request):
+    if request.method == 'POST':
+        form = MessageForm(request, request.POST)
+        if form.is_valid():
+            for recipient in form.cleaned_data['recipients']:
+                Inbox.send_message(request.user, recipient, form.cleaned_data['content'])
+            messages.add_message(request, messages.SUCCESS, 'با موفقیت ارسال شد.')
+            return HttpResponseRedirect(reverse('edu:message_form'))
+    else:
+        form = MessageForm(request, request.POST)
+        print(form.fields)
+    return render(request, 'edu/message_form.html', {'form': form})

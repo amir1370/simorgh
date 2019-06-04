@@ -2,9 +2,9 @@
 {% load static from staticfiles %}
 {% load auth_group %}
 {% block title %}ورود{% endblock %}
-
+{% block style %}{% endblock %}
 {% block content %}
-<body class="animsition">
+    <body class="animsition">
     <div class="page-wrapper">
         <!-- HEADER MOBILE-->
         <header class="header-mobile d-block d-lg-none">
@@ -12,7 +12,7 @@
                 <div class="container-fluid">
                     <div class="header-mobile-inner">
                         <a class="logo" href="index.html">
-                            <img style="width:50px; height:50px" src="{% static 'images/simorgh.png' %}" alt="سیمرغ" />
+                            <img style="width:50px; height:50px" src="{% static 'images/simorgh.png' %}" alt="سیمرغ"/>
                         </a>
                         <button class="hamburger hamburger--slider" type="button">
                             <span class="hamburger-box">
@@ -75,9 +75,9 @@
         <aside class="menu-sidebar d-none d-lg-block">
             <div class="logo">
                 <p class="m-auto">
-                        <a href="#">
-                                <img style="width:50px; height:50px" src="{% static 'images/simorgh.png' %}" alt="سیمرغ" />
-                            </a> سیمرغ
+                    <a href="#">
+                        <img style="width:50px; height:50px" src="{% static 'images/simorgh.png' %}" alt="سیمرغ"/>
+                    </a> سیمرغ
                 </p>
             </div>
             <div class="menu-sidebar__content js-scrollbar1">
@@ -92,46 +92,46 @@
                                 <i class="fas fa-id-card"></i>پروفایل</a>
                         </li>
                         {% if request.user|has_group:"manager" %}
-                        <li>
-                            <a href="/dashboard/classroomlist">
-                                <i class="fas fa-list-alt"></i>فهرست کلاس ها</a>
-                        </li>
+                            <li>
+                                <a href="/dashboard/classroomlist">
+                                    <i class="fas fa-list-alt"></i>فهرست کلاس ها</a>
+                            </li>
                         {% endif %}
                         {% if request.user|has_group:"teacher" %}
-                        <li>
-                            <a href="/dashboard/classroomlist">
-                                <i class="fas fa-list-alt"></i>فهرست کلاس ها</a>
-                        </li>
+                            <li>
+                                <a href="/dashboard/classroomlist">
+                                    <i class="fas fa-list-alt"></i>فهرست کلاس ها</a>
+                            </li>
                         {% endif %}
                         {% if request.user|has_group:"manager" %}
-                        <li class="has-sub">
-                            <a class="js-arrow" href="#">
-                                <i class="fas fa-desktop"></i>مدیریت</a>
-                            <ul class="list-unstyled navbar__sub-list js-sub-list">
-                                <li>
-                                    <a href="/dashboard/studentlist">مدیریت دانش آموزان</a>
-                                </li>
-                                <li>
-                                    <a href="/dashboard/teacherlist">مدیریت معلمان</a>
-                                </li>
-                                <li>
-                                    <a href="/dashboard/classroomlist">مدیریت کلاس ها</a>
-                                </li>
-                            </ul>
-                        </li>
-                        <li class="has-sub">
-                            <a class="js-arrow" href="#">
-                                <i class="fas fa-registered"></i>ثبت کلاس</a>
-                            <ul class="list-unstyled navbar__sub-list js-sub-list">
-                                <li>
-                                    <a href="/dashboard/teacherclasscourse">معلم - درس</a>
-                                </li>
-                                <li>
-                                    <a href="/dashboard/studentregister/">دانش آموز</a>
-                                </li>
-                            </ul>
-                        </li>
+                            <li class="has-sub">
+                                <a class="js-arrow" href="#">
+                                    <i class="fas fa-desktop"></i>مدیریت</a>
+                                <ul class="list-unstyled navbar__sub-list js-sub-list">
+                                    <li>
+                                        <a href="/dashboard/studentlist">مدیریت دانش آموزان</a>
+                                    </li>
+                                    <li>
+                                        <a href="/dashboard/teacherlist">مدیریت معلمان</a>
+                                    </li>
+                                    <li>
+                                        <a href="/dashboard/classroomlist">مدیریت کلاس ها</a>
+                                    </li>
+                                </ul>
+                            </li>
                         {% endif %}
+                        <li class="has-sub">
+                            <a class="js-arrow" href="#">
+                                <i class="fas fa-registered"></i>فعالیت ها</a>
+                            <ul class="list-unstyled navbar__sub-list js-sub-list">
+                                <li>
+                                    <a href="/dashboard/assignmentlist">تمرین</a>
+                                </li>
+                                <li>
+                                    <a href="#">---</a>
+                                </li>
+                            </ul>
+                        </li>
                     </ul>
                 </nav>
             </div>
@@ -146,26 +146,80 @@
                     <div class="container-fluid">
                         <div class="header-wrap">
                             <form class="form-header" action="" method="POST">
-                                <input class="au-input au-input--xl" type="text" name="جستجو" placeholder="جستجو گزارش" />
+                                <input class="au-input au-input--xl" type="text" name="جستجو"
+                                       placeholder="جستجو گزارش"/>
                                 <button class="au-btn--submit" type="submit">
                                     <i class="zmdi zmdi-search"></i>
                                 </button>
                             </form>
                             <div class="header-button">
-                                    
+                                <div class="noti-wrap ml-5">
+                                    <h2><a href="/dashboard/messageform/" class="text-secondary"><i class="zmdi zmdi-email"></i></a></h2>
+{#                                    <span class="quantity">1</span>#}
+                                    <div class="noti__item js-item-menu">
+
+                                        {#                                        <div class="email-dropdown js-dropdown">#}
+                                        {#                                            <div class="email__title">#}
+                                        {#                                                <p>You have 3 New Emails</p>#}
+                                        {#                                            </div>#}
+                                        {#                                            <div class="email__item">#}
+                                        {#                                                <div class="image img-cir img-40">#}
+                                        {#                                                    <img src="images/icon/avatar-06.jpg" alt="Cynthia Harvey"/>#}
+                                        {#                                                </div>#}
+                                        {#                                                <div class="content">#}
+                                        {#                                                    <p>Meeting about new dashboard...</p>#}
+                                        {#                                                    <span>Cynthia Harvey, 3 min ago</span>#}
+                                        {#                                                </div>#}
+                                        {#                                            </div>#}
+                                        {#                                            <div class="email__item">#}
+                                        {#                                                <div class="image img-cir img-40">#}
+                                        {#                                                    <img src="images/icon/avatar-05.jpg" alt="Cynthia Harvey"/>#}
+                                        {#                                                </div>#}
+                                        {#                                                <div class="content">#}
+                                        {#                                                    <p>Meeting about new dashboard...</p>#}
+                                        {#                                                    <span>Cynthia Harvey, Yesterday</span>#}
+                                        {#                                                </div>#}
+                                        {#                                            </div>#}
+                                        {#                                            <div class="email__item">#}
+                                        {#                                                <div class="image img-cir img-40">#}
+                                        {#                                                    <img src="images/icon/avatar-04.jpg" alt="Cynthia Harvey"/>#}
+                                        {#                                                </div>#}
+                                        {#                                                <div class="content">#}
+                                        {#                                                    <p>Meeting about new dashboard...</p>#}
+                                        {#                                                    <span>Cynthia Harvey, April 12,,2018</span>#}
+                                        {#                                                </div>#}
+                                        {#                                            </div>#}
+                                        {#                                            <div class="email__footer">#}
+                                        {#                                                <a href="/dashboard/messageform/">مشاهده پیام ها</a>#}
+                                        {#                                            </div>#}
+                                        {#                                        </div>#}
+                                    </div>
+                                </div>
                                 <div class="account-wrap">
                                     <div class="account-item clearfix js-item-menu">
                                         <div class="image">
-                                            <img src="" alt="" />
+                                            <img src="" alt=""/>
                                         </div>
                                         <div class="content">
-                                            <a class="js-acc-btn" href="#">{{ user.first_name }} {{ user.last_name }}</a>
+                                            <a class="js-acc-btn"
+                                               href="#">
+                                                {% if request.user|has_group:"teacher" %}
+                                                    <span class="badge badge-info">معلم</span>
+                                                {% endif %}
+                                                {% if request.user|has_group:"manager" %}
+                                                    <span class="badge badge-info">مدیر</span>
+                                                {% endif %}
+                                                {% if request.user|has_group:"student" %}
+                                                    <span class="badge badge-info">دانش آموز</span>
+                                                {% endif %}
+                                                {{ user.first_name }} {{ user.last_name }}
+                                            </a>
                                         </div>
                                         <div class="mess-dropdown js-dropdown pr-4" style="text-align:right;">
                                             <div class="info clearfix">
                                                 <div class="image">
                                                     <a href="#">
-                                                        <img src="" alt="" />
+                                                        <img src="" alt=""/>
                                                     </a>
                                                 </div>
                                                 <div class="content">
@@ -229,6 +283,8 @@
     <!-- Main JS-->
     <script src="{% static 'js/main.js' %}"></script>
 
-</body>
+    {% block script %}{% endblock %}
+
+    </body>
 
 {% endblock %}

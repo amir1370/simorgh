@@ -1,64 +1,50 @@
-{% extends 'index.html' %}
+{% extends 'form.html' %}
 {% load static from staticfiles %}
 {% load widget_tweaks %}
 
-{% block content2 %}
-    <div class="login-wrap pb-4">
-        <div class="login-content border-success bg-light">
-            <h3 class="text-center">ثبت معلم</h3>
-            {% if messages %}
-                <ul>
-                    {% for message in messages %}
-                        <li>{{ message }}</li>
-                        </ul>
-                    {% endfor %}
-            {% endif %}
-            <div class="login-form">
-                <form action="" method="post">
+{% block form_title %} ثبت  معلم{% endblock %}
 
-                    {% csrf_token %}
-                    {{ form.non_field_errors }}
-                    <div class="form-group">
-                        {{ form.username.erorrs }}
-                        <label for="{{ form.username.id_for_label }}">نام کاربری :</label>
-                        {% render_field form.username class+="au-input au-input--full" %}
-                    </div>
-                    <div class="form-group">
-                        {{ form.first_name.errors }}
-                        <label for="{{ form.first_name.id_for_label }}">نام :</label>
-                        {% render_field form.first_name class+="au-input au-input--full" %}
-                    </div>
-                    <div class="form-group">
-                        {{ form.last_name.errors }}
-                        <label for="{{ form.last_name.id_for_label }}">نام خانوادگی :</label>
-                        {% render_field form.last_name class+="au-input au-input--full" %}
-                    </div>
-                    <div class="form-group">
-                        {{ form.hire_date.errors }}
-                        <label for="{{ form.hire_date.id_for_label }}">تاریخ استخدام :</label>
-                        {% render_field form.hire_date  class+="au-input au-input--full" %}
-                    </div>
-                    <div class="form-group">
-                        {{ form.education_degree.errors }}
-                        <label for="{{ form.education_degree.id_for_label }}">مدرک تحصیلی :</label>
-                        {% render_field form.education_degree class+="au-input au-input--full" %}
-                    </div>
-                    <div class="form-group">
-                        {{ form.profession.errors }}
-                        <label for="{{ form.profession.id_for_label }}">تخصص :</label>
-                        {% render_field form.profession class+="au-input au-input--full" %}
-                    </div>
-                    <div class="login-checkbox">
-                        {{ form.is_active.errors }}
-                        <label for="{{ form.is_active.id_for_label }}">
-                            {% render_field form.is_active %} فعال </label>
-                    </div>
+{% block form_content %}
+    <form action="" method="post">
 
-                    <button type="submit" class="btn btn-primary">ثبت</button>
-                </form>
-            </div>
+        {% csrf_token %}
+        {{ form.non_field_errors }}
+        <div class="form-group">
+            {{ form.username.erorrs }}
+            <label for="{{ form.username.id_for_label }}">نام کاربری :</label>
+            {% render_field form.username class+="au-input au-input--full" %}
         </div>
-    </div>
+        <div class="form-group">
+            {{ form.first_name.errors }}
+            <label for="{{ form.first_name.id_for_label }}">نام :</label>
+            {% render_field form.first_name class+="au-input au-input--full" %}
+        </div>
+        <div class="form-group">
+            {{ form.last_name.errors }}
+            <label for="{{ form.last_name.id_for_label }}">نام خانوادگی :</label>
+            {% render_field form.last_name class+="au-input au-input--full" %}
+        </div>
+        <div class="form-group">
+            {{ form.hire_date.errors }}
+            <label for="{{ form.hire_date.id_for_label }}">تاریخ استخدام :</label>
+            {% render_field form.hire_date class+="au-input au-input--full" %}
+        </div>
+        <div class="form-group">
+            {{ form.education_degree.errors }}
+            <label for="{{ form.education_degree.id_for_label }}">مدرک تحصیلی :</label>
+            {% render_field form.education_degree class+="au-input au-input--full" %}
+        </div>
+        <div class="form-group">
+            {{ form.profession.errors }}
+            <label for="{{ form.profession.id_for_label }}">تخصص :</label>
+            {% render_field form.profession class+="au-input au-input--full" %}
+        </div>
+        <div class="login-checkbox">
+            {{ form.is_active.errors }}
+            <label for="{{ form.is_active.id_for_label }}">
+                {% render_field form.is_active %} فعال </label>
+        </div>
 
+        <button type="submit" class="btn btn-primary">ثبت</button>
+    </form>
 {% endblock %}
-

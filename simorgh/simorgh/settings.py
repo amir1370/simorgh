@@ -132,3 +132,6 @@ LOGOUT_REDIRECT_URL = '/login/'
 LANGUAGE_CODE = 'fa-ir'
 import locale
 locale.setlocale(locale.LC_ALL, "fa_IR")
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')

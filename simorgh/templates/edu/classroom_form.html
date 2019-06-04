@@ -1,44 +1,30 @@
-{% extends 'index.html' %}
+{% extends 'form.html' %}
 {% load static from staticfiles %}
 {% load widget_tweaks %}
 
-{% block content2 %}
-    <div class="login-wrap pb-4">
-        <div class="login-content border-success bg-light">
-            <h3 class="text-center">ثبت  کلاس</h3>
-            {% if messages %}
-                <ul>
-                    {% for message in messages %}
-                        <li>{{ message }}</li>
-                        </ul>
-                    {% endfor %}
-            {% endif %}
-            <div class="login-form">
-                <form action="" method="post">
+{% block form_title %} ثبت  کلاس{% endblock %}
 
-                    {% csrf_token %}
-                    {{ form.non_field_errors }}
-                    <div class="form-group">
-                        {{ form.level_field.erorrs }}
-                        <label for="{{ form.level_field.id_for_label }}">پایه و رشته تحصیلی</label>
-                        {% render_field form.level_field class+="au-input au-input--full" %}
-                    </div>
-                    <div class="form-group">
-                        {{ form.branch.errors }}
-                        <label for="{{ form.branch.id_for_label }}">گروه</label>
-                        {% render_field form.branch class+="au-input au-input--full" %}
-                    </div>
-                    <div class="form-group">
-                        {{ form.education_year.errors }}
-                        <label for="{{ form.education_year.id_for_label }}">سال تحصیلی</label>
-                        {% render_field form.education_year class+="au-input au-input--full" %}
-                    </div>
+{% block form_content %}
+    <form action="" method="post">
 
-                    <button type="submit" class="btn btn-primary">ثبت</button>
-                </form>
-            </div>
+        {% csrf_token %}
+        {{ form.non_field_errors }}
+        <div class="form-group">
+            {{ form.level_field.erorrs }}
+            <label for="{{ form.level_field.id_for_label }}">پایه و رشته تحصیلی</label>
+            {% render_field form.level_field class+="au-input au-input--full" %}
         </div>
-    </div>
+        <div class="form-group">
+            {{ form.branch.errors }}
+            <label for="{{ form.branch.id_for_label }}">گروه</label>
+            {% render_field form.branch class+="au-input au-input--full" %}
+        </div>
+        <div class="form-group">
+            {{ form.education_year.errors }}
+            <label for="{{ form.education_year.id_for_label }}">سال تحصیلی</label>
+            {% render_field form.education_year class+="au-input au-input--full" %}
+        </div>
 
+        <button type="submit" class="btn btn-primary">ثبت</button>
+    </form>
 {% endblock %}
-

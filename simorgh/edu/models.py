@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 import datetime
+from django.core.validators import MaxValueValidator, MinValueValidator
 
 
 class Student(models.Model):
@@ -32,7 +33,6 @@ class Teacher(models.Model):
     )
     education_degree = models.CharField(max_length=2, choices=degree_choices, verbose_name='مدرک تحصیلی')
     profession = models.ManyToManyField('Course', verbose_name='تخصص')
-
 
     def __str__(self):
         return self.user.first_name + ' ' + self.user.last_name
@@ -66,7 +66,8 @@ class Classroom(models.Model):
         (B, 'ب'),
         (C, 'ج')
     )
-    branch = models.CharField(max_length=2, choices=branch_choices, default='a', null=True, verbose_name='گروه', blank=True)
+    branch = models.CharField(max_length=2, choices=branch_choices, default='a', null=True, verbose_name='گروه',
+                              blank=True)
     education_year = models.CharField(max_length=20, null=True)
     courses = models.ManyToManyField('Course', through='TeacherClassCourse', related_name='classrooms')
     teachers = models.ManyToManyField('Teacher', through='TeacherClassCourse', related_name='classrooms')
@@ -92,19 +93,25 @@ class StudentCourse(models.Model):
 
 
 class Register(models.Model):
-    student = models.ForeignKey('Student', related_name='registers', on_delete=models.SET_NULL, null=True, verbose_name='دانش آموز')
-    classroom = models.ForeignKey('Classroom', related_name='registers', on_delete=models.SET_NULL, null=True, verbose_name='کلاس')
+    student = models.ForeignKey('Student', related_name='registers', on_delete=models.SET_NULL, null=True,
+                                verbose_name='دانش آموز')
+    classroom = models.ForeignKey('Classroom', related_name='registers', on_delete=models.SET_NULL, null=True,
+                                  verbose_name='کلاس')
     is_active = models.BooleanField(verbose_name='فعال')
 
 
 class TeacherClassCourse(models.Model):
-    teacher = models.ForeignKey('Teacher', related_name='teacher_class_courses', on_delete=models.SET_NULL, null=True, verbose_name='معلم')
-    classroom = models.ForeignKey('Classroom', related_name='teacher_class_courses', on_delete=models.SET_NULL, null=True, verbose_name='کلاس')
-    course = models.ForeignKey('Course', related_name='teacher_class_courses', on_delete=models.SET_NULL, null=True, verbose_name='دزس')
+    teacher = models.ForeignKey('Teacher', related_name='teacher_class_courses', on_delete=models.SET_NULL, null=True,
+                                verbose_name='معلم')
+    classroom = models.ForeignKey('Classroom', related_name='teacher_class_courses', on_delete=models.SET_NULL,
+                                  null=True, verbose_name='کلاس')
+    course = models.ForeignKey('Course', related_name='teacher_class_courses', on_delete=models.SET_NULL, null=True,
+                               verbose_name='دزس')
     class_time = models.ManyToManyField('ClassTime', related_name='teacher_class_course', verbose_name='زمان کلاس')
 
     def __str__(self):
         return str(self.classroom) + ' ' + str(self.course) + ' ' + str(self.teacher)
+
 
 class ClassTime(models.Model):
     A, B, C, D = '1', '2', '3', '4'
@@ -115,7 +122,7 @@ class ClassTime(models.Model):
         (D, 'زنگ چهارم')
     )
     part = models.CharField(max_length=20, choices=part_choices, default='1', null=True, verbose_name='زنگ',
-                              blank=True)
+                            blank=True)
     Saturday, Sunday, Monday, Tuesday, Wednesday = 'Sa', 'Su', 'Mo', 'Tu', 'We'
     day_choices = (
         (Saturday, 'شنبه'),
@@ -125,7 +132,18 @@ class ClassTime(models.Model):
         (Wednesday, 'چهارشنبه')
     )
     day = models.CharField(max_length=20, choices=day_choices, default='Sa', null=True, verbose_name='روز',
-                            blank=True)
+                           blank=True)
+
     def __str__(self):
         return self.get_day_display() + ' ' + self.get_part_display()
 
+
+class Assignment(models.Model):
+    file = models.FileField(upload_to='assignments')
+    sent_time = models.DateField()
+    deadline_time = models.DateField()
+    teacher_class_course = models.ForeignKey(TeacherClassCourse, on_delete=models.SET_NULL, null=True)
+    grade = models.IntegerField(null=True, blank=True, validators=[
+        MaxValueValidator(20), MinValueValidator(0)
+    ])
+    description = models.TextField()

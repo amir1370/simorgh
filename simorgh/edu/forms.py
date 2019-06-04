@@ -1,9 +1,10 @@
 from django.forms import ModelForm
 from django import forms
-from .models import Student, Teacher, Classroom, TeacherClassCourse, Register, User, ClassTime, Course
+from .models import Student, Teacher, Classroom, TeacherClassCourse, Register, User, ClassTime, Course, Assignment
 from django.forms.widgets import CheckboxSelectMultiple
 from django.db.models import Q
 from directmessages.models import Message
+from django.contrib.auth.models import Group
 
 
 class DateInput(forms.DateInput):
@@ -58,6 +59,14 @@ class TeacherSearchForm(forms.Form):
 class StudentSearchForm(forms.Form):
     first_name = forms.CharField(max_length=20, required=False, label='نام')
     last_name = forms.CharField(max_length=20, required=False, label='نام خانوادگی')
+    MATH, NATURAL, HUMANITY, EMPTY = 'math', 'natural', 'humanity', None
+    field_choices = (
+        (EMPTY, '-----'),
+        (MATH, 'ریاضی'),
+        (NATURAL, 'تجربی'),
+        (HUMANITY, 'انسانی')
+    )
+    field = forms.ChoiceField(choices=field_choices, initial='', required=False, label='رشته')
 
     def __init__(self, *args, **kwargs):
         super(StudentSearchForm, self).__init__(*args, **kwargs)
@@ -119,6 +128,7 @@ class TeacherClassCourseForm(ModelForm):
         self.fields['class_time'].queryset = ClassTime.objects.filter(~Q(teacher_class_course__in=object_list))
         self.fields['course'].queryset = Course.objects.filter(~Q(teacher_class_courses__in=object_list))
 
+
 class RegisterForm(ModelForm):
     class Meta:
         model = Register
@@ -128,10 +138,39 @@ class RegisterForm(ModelForm):
 class UserForm(ModelForm):
     class Meta:
         model = User
-        fields = '__all__'
+        fields = ['username', 'password', 'email']
 
 
-class MessageForm(ModelForm):
+class MessageForm(forms.ModelForm):
+    recipients = forms.ModelMultipleChoiceField(
+        queryset=User.objects.none(), label='ارسال به', widget=forms.CheckboxSelectMultiple
+    )
+
     class Meta:
         model = Message
-        fields = '__all__'
+        fields = ['content']
+
+    def __init__(self, request, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        user = request.user
+        if Group.objects.get(name='teacher') in user.groups.all():
+            self.fields['recipients'].queryset = User.objects.filter(
+                student__registers__is_active=True, student__classrooms__teachers=Teacher.objects.get(user=user)
+            )
+        elif Group.objects.get(name='manager') in user.groups.all():
+            self.fields['recipients'].queryset = User.objects.all()
+
+
+class AssignmentForm(ModelForm):
+    class Meta:
+        model = Assignment
+        exclude = ['sent_time', 'grade']
+        widgets = {
+            'deadline_time': DateInput(),
+        }
+
+    def __init__(self, *args, **kwargs):
+        user = kwargs.pop('user')
+        super().__init__(*args, **kwargs)
+        if Group.objects.get(name='teacher') in user.groups.all():
+            self.fields['teacher_class_course'].queryset = TeacherClassCourse.objects.filter(teacher__user=user)
