@@ -1,0 +1,46 @@
+{% extends 'form.html' %}
+{% load static from staticfiles %}
+{% load widget_tweaks %}
+
+{% block form_title %}ارسال پیام{% endblock %}
+
+{% block form_content %}
+    <form action="" method="post">
+
+        {% csrf_token %}
+        {{ form.non_field_errors }}
+        <div class="form-group mb-5">
+            {{ form.recipient.erorrs }}
+            <label for="{{ form.recipients.id_for_label }}">ارسال به: </label>
+            <ul class="list-unstyled dropdown">
+                <button type="button" class="btn btn-info dropdown-toggle float-right" data-toggle="dropdown">
+                    انتخاب گیرنده
+                </button>
+                <div class="dropdown-menu" style="max-height: 200px; overflow-y: auto;">
+                    <li class="dropdown-item"><label><input type="checkbox" class="all"> همه</label></li>
+                    {% for item in form.recipients %}
+                        <li class="dropdown-item">{{ item }}</li>
+                    {% endfor %}
+                </div>
+            </ul>
+        </div>
+        <div class="form-group">
+{#            {{ form.content.errors }}#}
+            <label for="{{ form.content.id_for_label }}">محتوای پیام: </label>
+            {% render_field form.content class+="au-input au-input--full" style+="height:250px;" %}
+        </div>
+
+        <button type="submit" class="btn btn-primary">ارسال</button>
+    </form>
+
+{% endblock %}
+{% block script %}
+    <script>
+        $('.all').on('click', function (e) {
+            $this = this;
+            $.each($(this).parents('ul').find('input'), function (i, item) {
+                $(item).prop('checked', $this.checked);
+            });
+        });
+    </script>
+{% endblock %}

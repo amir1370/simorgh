@@ -1,0 +1,13 @@
+{% extends 'index.html' %}
+{% load static from staticfiles %}
+
+
+{% block content2 %}
+
+    <form method="post">{% csrf_token %}
+        <p>آیا می خواهید "{{ object }}" را حذف کنید؟</p>
+        <input type="submit" value="بله" class="btn btn-danger">
+    </form>
+
+
+{% endblock %}

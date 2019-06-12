@@ -1,0 +1,49 @@
+{% extends 'list.html' %}
+{% load static from staticfiles %}
+{% load auth_group %}
+
+{% block list_title %}<b>لیست تمرین ها</b>{% endblock %}
+
+{% block list_add_icon %}
+    <a href="/dashboard/assignmentform/" class="ml-3">
+        <h2 class="text-primary"><i class="zmdi zmdi-collection-add"></i></h2>
+    </a>
+{% endblock %}
+
+{% block list_content %}
+    <table class="table table-hover" style="text-align: center">
+        <tr>
+            <th>نام معلم</th>
+            <th>نام درس</th>
+            <th>عنوان تمرین</th>
+            <th>تاریخ ارسال</th>
+            <th>مهلت تحویل</th>
+            <th>فایل تمرین</th>
+        </tr>
+
+        {% for assignment in assignment_list %}
+            <tr>
+                <td>
+                    {{ assignment.teacher_class_course.teacher }}
+                </td>
+                <td>
+                    {{ assignment.teacher_class_course.course }}
+                </td>
+                <td>
+                    {{ assignment.description }}
+                </td>
+                <td>
+                    {{ assignment.sent_time }}
+                </td>
+                <td>
+                    {{ assignment.deadline_time }}
+                </td>
+                <td>
+                    <a href="{{ assignment.file.url }}"><i class="fas fa-download ml-2"></i></a>
+                </td>
+            </tr>
+        {% endfor %}
+    </table>
+{% endblock %}
+
+

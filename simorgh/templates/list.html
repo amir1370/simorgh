@@ -1,0 +1,47 @@
+{% extends 'index.html' %}
+{% load static from staticfiles %}
+
+
+{% block content2 %}
+
+    <div class="row">
+        <div class="col-9">
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert {{ message.tags }} alert-dismissible" role="alert">
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+            <h4 class="text-center m-auto">{% block list_title %}{% endblock %}</h4>
+
+            <h2 class="text-primary">{% block list_add_icon %}{% endblock %}</h2>
+
+            <div class="bg-light m-2">
+
+                {% block list_content %}{% endblock %}
+
+            </div>
+        </div>
+
+        <div class="col-3">
+            <div class="bg-light m-2">
+                <div class="row bg-info m-0 align-content-center p-2">
+                    {% block filter_title %}
+
+                    {% endblock %}
+                </div>
+                <div class="p-4" style="text-align: right">
+                    {% block filter %}
+
+                    {% endblock %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+{% endblock %}

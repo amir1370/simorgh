@@ -1,0 +1,68 @@
+{% extends 'index.html' %}
+{% load static from staticfiles %}
+{% load widget_tweaks %}
+
+
+{% block content2 %}
+    <div class="container">
+        <h3 class="text-center m-3">برنامه ریزی</h3>
+        {% if messages %}
+            <ul>
+                {% for message in messages %}
+                    <li>{{ message }}</li>
+                    </ul>
+                {% endfor %}
+        {% endif %}
+        <div class="mx-5">
+            <form method="post" class="my-3" style="background-color: lightgoldenrodyellow">
+                {% csrf_token %}
+                {{ formset.management_form }}
+                <table class="table table-bordered text-center">
+                    <tr>
+                        <th>ردیف</th>
+                        <th>معلم</th>
+                        <th>درس</th>
+                        <th>تعداد جلسات</th>
+                        <th>روزهای هفته</th>
+                    </tr>
+                    {% for form in formset %}
+                        <tr>
+                            <td style="max-width: 20px;">{{ forloop.counter }}</td>
+                            <td style="max-width: 100px;">{{ form.teacher }}</td>
+                            <td style="max-width: 100px;">{{ form.course }}</td>
+                            <td style="max-width: 50px;">{{ form.time_number }}</td>
+                            <td style="max-width: 50px;">
+                                <ul class="list-unstyled dropdown">
+                                    <button type="button" class="btn btn-info dropdown-toggle float-right"
+                                            data-toggle="dropdown">
+                                        انتخاب روز
+                                    </button>
+                                    <div class="dropdown-menu" style="max-height: 200px; overflow-y: auto;">
+                                        <li class="dropdown-item"><label><input type="checkbox" class="all"> همه</label>
+                                        </li>
+                                        {% for item in form.days %}
+                                            <li class="dropdown-item">{{ item }}</li>
+                                        {% endfor %}
+                                    </div>
+                                </ul>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </table>
+                <button type="submit" class="btn btn-success m-3">ثبت</button>
+            </form>
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block script %}
+    <script>
+        $('.all').on('click', function (e) {
+            $this = this;
+            $.each($(this).parents('ul').find('input'), function (i, item) {
+                $(item).prop('checked', $this.checked);
+            });
+        });
+    </script>
+{% endblock %}

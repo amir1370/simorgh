@@ -1,0 +1,45 @@
+{% extends 'list.html' %}
+{% load static from staticfiles %}
+{% load auth_group %}
+
+{% block list_title %}<b>دروس</b>{% endblock %}
+
+{#{% block list_add_icon %}#}
+{#    <a href="/dashboard/studentcourse-form/" class="ml-3">#}
+{#        <h2 class="text-primary"><i class="zmdi zmdi-collection-add"></i></h2>#}
+{#    </a>#}
+{#{% endblock %}#}
+
+{% block list_content %}
+    <table class="table table-hover" style="text-align: center">
+        <tr>
+            <th>کلاس</th>
+            <th>نام درس</th>
+            <th>نمرات</th>
+            <th>حضور و غیاب</th>
+
+        </tr>
+        {% for teacher_class_course in object_list %}
+            <tr>
+                <td>
+                    {{ teacher_class_course.classroom }}
+                </td>
+                <td>
+                    {{ teacher_class_course.course }}
+                </td>
+                <td>
+                    <a href="/dashboard/activity/grade/{{ teacher_class_course.pk }}/students">
+                        <i class="zmdi zmdi-format-list-numbered"></i>
+                    </a>
+                </td>
+                <td>
+                    <a href="/dashboard/activity/presence/{{ teacher_class_course.pk }}">
+                        <i class="fa fa-users"></i>
+                    </a>
+                </td>
+            </tr>
+        {% endfor %}
+    </table>
+{% endblock %}
+
+

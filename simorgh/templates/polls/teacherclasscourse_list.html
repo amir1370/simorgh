@@ -1,0 +1,34 @@
+{% extends 'list.html' %}
+{% load static from staticfiles %}
+{% load auth_group %}
+
+{% block list_title %}<b>دروس</b>{% endblock %}
+
+{#{% block list_add_icon %}#}
+{#    <a href="/dashboard/studentcourse-form/" class="ml-3">#}
+{#        <h2 class="text-primary"><i class="zmdi zmdi-collection-add"></i></h2>#}
+{#    </a>#}
+{#{% endblock %}#}
+
+{% block list_content %}
+    <table class="table table-hover" style="text-align: center">
+        <tr>
+            <th>نام معلم</th>
+            <th>نام درس</th>
+        </tr>
+        {% for teacher_class_course in object_list %}
+            <tr>
+                <td>
+                    {{ teacher_class_course.teacher }}
+                </td>
+                <td>
+                    <a href="/polls/{{ teacher_class_course.pk }}/">
+                        {{ teacher_class_course.course }}
+                    </a>
+                </td>
+            </tr>
+        {% endfor %}
+    </table>
+{% endblock %}
+
+

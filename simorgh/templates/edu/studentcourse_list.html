@@ -1,0 +1,49 @@
+{% extends 'list.html' %}
+{% load static from staticfiles %}
+{% load auth_group %}
+
+
+{% block list_title %}<b>نمرات</b>{% endblock %}
+
+{#{% block list_add_icon %}#}
+{#    <a href="/dashboard/studentcourse-form/" class="ml-3">#}
+{#        <h2 class="text-primary"><i class="zmdi zmdi-collection-add"></i></h2>#}
+{#    </a>#}
+{#{% endblock %}#}
+
+{% block list_content %}
+    <table class="table table-hover" style="text-align: center">
+        <tr>
+                <th>نام</th>
+                <th>نام خانوادگی</th>
+            <th>میان ترم</th>
+            <th>پایانی</th>
+                <th>ویرایش</th>
+
+        </tr>
+
+        {% for student_course in object_list %}
+            <tr>
+                    <td>
+                        {{ student_course.student.user.first_name }}
+                    </td>
+                    <td>
+                        {{ student_course.student.user.last_name }}
+                    </td>
+                <td>
+                    {{ student_course.mid_grade }}
+                </td>
+                <td>
+                    {{ student_course.final_grade }}
+                </td>
+                    <td>
+                        <a href="/dashboard/activity/grade/{{ student_course.pk }}/edit">
+                            <i class="fas fa-edit"></i>
+                        </a>
+                    </td>
+            </tr>
+        {% endfor %}
+    </table>
+{% endblock %}
+
+

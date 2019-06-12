@@ -1,0 +1,69 @@
+{% extends 'list.html' %}
+{% load static from staticfiles %}
+
+{% block list_title %}<b> برنامه هفتگی {{ classroom }} </b>{% endblock %}
+
+{% block list_add_icon %}
+
+{% endblock %}
+
+{% block list_content %}
+    <div class="table-responsive">
+    <table class="table table-bordered text-center">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>زنگ اول</th>
+          <th>زنگ دوم</th>
+          <th>زنگ سوم</th>
+          <th>زنگ چهارم</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><b>شنبه</b></td>
+          <td class="{% if unauthorized_time.0 == 1 %} bg-danger text-light {% endif %}">{{ part_day1 }}</td>
+          <td class="{% if unauthorized_time.1 == 1 %} bg-danger text-light {% endif %}">{{ part_day2 }}</td>
+          <td class="{% if unauthorized_time.2 == 1 %} bg-danger text-light {% endif %}">{{ part_day3 }}</td>
+          <td class="{% if unauthorized_time.3 == 1 %} bg-danger text-light {% endif %}">{{ part_day4 }}</td>
+        </tr>
+      <tr>
+          <td><b>یکشنبه</b></td>
+          <td class="{% if unauthorized_time.4 == 1 %} bg-danger text-light {% endif %}">{{ part_day5 }}</td>
+          <td class="{% if unauthorized_time.5 == 1 %} bg-danger text-light {% endif %}">{{ part_day6 }}</td>
+          <td class="{% if unauthorized_time.6 == 1 %} bg-danger text-light {% endif %}">{{ part_day7 }}</td>
+          <td class="{% if unauthorized_time.7 == 1 %} bg-danger text-light {% endif %}">{{ part_day8 }}</td>
+        </tr>
+      <tr>
+          <td><b>دوشنبه</b></td>
+          <td class="{% if unauthorized_time.8 == 1 %} bg-danger text-light {% endif %}">{{ part_day9 }}</td>
+          <td class="{% if unauthorized_time.9 == 1 %} bg-danger text-light {% endif %}">{{ part_day10 }}</td>
+          <td class="{% if unauthorized_time.10 == 1 %} bg-danger text-light {% endif %}">{{ part_day11 }}</td>
+          <td class="{% if unauthorized_time.11 == 1 %} bg-danger text-light {% endif %}">{{ part_day12 }}</td>
+        </tr>
+      <tr>
+          <td><b>سه شنبه</b></td>
+          <td class="{% if unauthorized_time.12 == 1 %} bg-danger text-light {% endif %}">{{ part_day13 }}</td>
+          <td class="{% if unauthorized_time.13 == 1 %} bg-danger text-light {% endif %}">{{ part_day14 }}</td>
+          <td class="{% if unauthorized_time.14 == 1 %} bg-danger text-light {% endif %}">{{ part_day15 }}</td>
+          <td class="{% if unauthorized_time.15 == 1 %} bg-danger text-light {% endif %}">{{ part_day16 }}</td>
+        </tr>
+      <tr>
+          <td><b>چهارشنبه</b></td>
+          <td class="{% if unauthorized_time.16 == 1 %} bg-danger text-light {% endif %}">{{ part_day17 }}</td>
+          <td class="{% if unauthorized_time.17 == 1 %} bg-danger text-light {% endif %}">{{ part_day18 }}</td>
+          <td class="{% if unauthorized_time.18 == 1 %} bg-danger text-light {% endif %}">{{ part_day19 }}</td>
+          <td class="{% if unauthorized_time.19 == 1 %} bg-danger text-light {% endif %}">{{ part_day20 }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+{% endblock %}
+
+{% block filter_title %}
+    <h4 class="text-center m-auto">اطلاعات</h4>
+{% endblock %}
+{% block filter %}
+    
+{% endblock %}
+

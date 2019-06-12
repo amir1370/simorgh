@@ -1,0 +1,36 @@
+{% extends 'list.html' %}
+{% load static from staticfiles %}
+
+{% block list_title %}<b>لیست دانش آموزان {{ classroom }}</b>{% endblock %}
+
+{% block list_add_icon %}
+    <a href="/dashboard/studentregister/" class="ml-3">
+        <h2 class="text-primary"><i class="zmdi zmdi-account-add"></i></h2>
+    </a>
+{% endblock %}
+
+{% block list_content %}
+    <table class="table table-hover" style="text-align: center">
+        <tr>
+            <th>شماره دانش آموزی</th>
+            <th>نام</th>
+            <th>نام خانوادگی</th>
+        </tr>
+
+        {% for student in classroom_students %}
+            <tr>
+                <td>
+                    {{ student.student_id }}
+                </td>
+                <td>
+                    {{ student.user.first_name }}
+                </td>
+                <td>
+                    {{ student.user.last_name }}
+                </td>
+            </tr>
+        {% endfor %}
+    </table>
+{% endblock %}
+
+

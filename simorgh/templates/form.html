@@ -1,0 +1,23 @@
+{% extends 'index.html' %}
+{% load static from staticfiles %}
+{% load widget_tweaks %}
+
+{% block content2 %}
+    <div class="login-wrap pb-4">
+        <div class="login-content border-success bg-light">
+            <h3 class="text-center">{% block form_title %} {% endblock %}</h3>
+            {% if messages %}
+                <ul>
+                    {% for message in messages %}
+                        <li>{{ message }}</li>
+                        </ul>
+                    {% endfor %}
+            {% endif %}
+            <div class="login-form">
+                {% block form_content %} {% endblock %}
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+

@@ -1,0 +1,17 @@
+<table class="table text-right">
+    <tr>
+        <th style="cursor: pointer;">فرستنده</th>
+        <th style="cursor: pointer;">پیام</th>
+        <th style="cursor: pointer;">تاریخ ارسال</th>
+    </tr>
+    {% for message in message_list %}
+        <tr>
+            <td>
+                <h4>{{ message.sender.first_name }} {{ message.sender.last_name }}:</h4>
+            </td>
+            <td>{{ message.content }}</td>
+            <td>{{ message.sent_at }}</td>
+        </tr>
+    {% endfor %}
+</table>
+

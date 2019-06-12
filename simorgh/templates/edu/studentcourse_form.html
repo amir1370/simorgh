@@ -1,0 +1,25 @@
+{% extends 'form.html' %}
+{% load static from staticfiles %}
+{% load widget_tweaks %}
+
+{% block form_title %} ثبت  نمره{% endblock %}
+
+{% block form_content %}
+    <form action="" method="post">
+
+        {% csrf_token %}
+        {{ form.non_field_errors }}
+        <div class="form-group">
+            {{ form.mid_grade.erorrs }}
+            <label for="{{ form.mid_grade.id_for_label }}">میان ترم :</label>
+            {% render_field form.mid_grade class+="au-input au-input--full" %}
+        </div>
+        <div class="form-group">
+            {{ form.final_grade.errors }}
+            <label for="{{ form.final_grade.id_for_label }}">پایانی :</label>
+            {% render_field form.final_grade class+="au-input au-input--full" %}
+        </div>
+
+        <button type="submit" class="btn btn-primary">ثبت</button>
+    </form>
+{% endblock %}
