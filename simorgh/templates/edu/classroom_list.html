@@ -68,5 +68,16 @@
         {% endfor %}
     </table>
 {% endblock %}
+{% block filter_title %}
+    <h4 class="text-center m-auto">فیلتر</h4>
+{% endblock %}
+{% block filter %}
+    <form action="" method="get" class="form-horizontal p-auto">
+        {% csrf_token %}
+        <div class="form-group">
+            {{ search.as_p }}
+        </div>
 
-
+        <input type="submit" class="btn btn-primary mt-5" value="جستجو"/>
+    </form>
+{% endblock %}

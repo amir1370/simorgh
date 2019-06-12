@@ -85,28 +85,28 @@
                     <ul class="list-unstyled navbar__list pr-0">
                         <li class="active has-sub">
                             <a class="js-arrow" href="/dashboard/">
-                                <i class="fas fa-tachometer-alt"></i>داشبورد</a>
+                                <i class="fas fa-tachometer-alt ml-2"></i>داشبورد</a>
                         </li>
                         <li>
                             <a href="/dashboard/profile/{{ request.user.pk }}">
-                                <i class="fas fa-id-card"></i>پروفایل</a>
+                                <i class="fas fa-id-card ml-2"></i>پروفایل</a>
                         </li>
-                        {% if request.user|has_group:"manager" %}
+{#                        {% if request.user|has_group:"manager" %}#}
+{#                            <li>#}
+{#                                <a href="/dashboard/classroomlist">#}
+{#                                    <i class="fas fa-list-alt ml-2"></i>فهرست کلاس ها</a>#}
+{#                            </li>#}
+{#                        {% endif %}#}
+{#                        {% if request.user|has_group:"teacher" %}#}
                             <li>
                                 <a href="/dashboard/classroomlist">
-                                    <i class="fas fa-list-alt"></i>فهرست کلاس ها</a>
+                                    <i class="fas fa-list-alt ml-2"></i>فهرست کلاس ها</a>
                             </li>
-                        {% endif %}
-                        {% if request.user|has_group:"teacher" %}
-                            <li>
-                                <a href="/dashboard/classroomlist">
-                                    <i class="fas fa-list-alt"></i>فهرست کلاس ها</a>
-                            </li>
-                        {% endif %}
+{#                        {% endif %}#}
                         {% if request.user|has_group:"manager" %}
                             <li class="has-sub">
                                 <a class="js-arrow" href="#">
-                                    <i class="fas fa-desktop"></i>مدیریت</a>
+                                    <i class="fas fa-desktop ml-2"></i>مدیریت</a>
                                 <ul class="list-unstyled navbar__sub-list js-sub-list">
                                     <li>
                                         <a href="/dashboard/studentlist">مدیریت دانش آموزان</a>
@@ -122,16 +122,34 @@
                         {% endif %}
                         <li class="has-sub">
                             <a class="js-arrow" href="#">
-                                <i class="fas fa-registered"></i>فعالیت ها</a>
+                                <i class="fas fa-archive ml-2"></i>فعالیت ها </a>
                             <ul class="list-unstyled navbar__sub-list js-sub-list">
                                 <li>
                                     <a href="/dashboard/assignmentlist">تمرین</a>
                                 </li>
                                 <li>
-                                    <a href="#">---</a>
+                                    <a href="/dashboard/activity/">کلاسی</a>
                                 </li>
                             </ul>
                         </li>
+                        {% if request.user|has_group:"student" %}
+                            <li>
+                                <a href="/polls/">
+                                    <i class="fa fa-info ml-2"></i>نظرسنجی</a>
+                            </li>
+                        {% endif %}
+                        {% if request.user|has_group:"manager" %}
+                            <li>
+                                <a href="/polls/">
+                                    <i class="fa fa-info ml-2"></i>نظرسنجی</a>
+                            </li>
+                        {% endif %}
+                        {% if request.user|has_group:"manager" %}
+                            <li>
+                                <a href="/dashboard/planning/">
+                                    <i class="fa fa-table ml-2"></i>برنامه ریزی</a>
+                            </li>
+                        {% endif %}
                     </ul>
                 </nav>
             </div>
@@ -154,8 +172,9 @@
                             </form>
                             <div class="header-button">
                                 <div class="noti-wrap ml-5">
-                                    <h2><a href="/dashboard/messageform/" class="text-secondary"><i class="zmdi zmdi-email"></i></a></h2>
-{#                                    <span class="quantity">1</span>#}
+                                    <h2><a href="/dashboard/messageform/" class="text-secondary"><i
+                                            class="zmdi zmdi-email"></i></a></h2>
+                                    {#                                    <span class="quantity">1</span>#}
                                     <div class="noti__item js-item-menu">
 
                                         {#                                        <div class="email-dropdown js-dropdown">#}

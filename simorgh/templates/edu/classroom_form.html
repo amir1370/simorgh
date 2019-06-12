@@ -24,6 +24,11 @@
             <label for="{{ form.education_year.id_for_label }}">سال تحصیلی</label>
             {% render_field form.education_year class+="au-input au-input--full" %}
         </div>
+        <div class="form-group">
+            {{ form.is_active.errors }}
+            <label for="{{ form.is_active.id_for_label }}">فعال</label>
+            {{ form.is_active }}
+        </div>
 
         <button type="submit" class="btn btn-primary">ثبت</button>
     </form>

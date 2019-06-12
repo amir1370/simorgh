@@ -71,6 +71,7 @@ class Classroom(models.Model):
     education_year = models.CharField(max_length=20, null=True)
     courses = models.ManyToManyField('Course', through='TeacherClassCourse', related_name='classrooms')
     teachers = models.ManyToManyField('Teacher', through='TeacherClassCourse', related_name='classrooms')
+    is_active = models.BooleanField(verbose_name='فعال')
 
     def __str__(self):
         return str(self.level_field) + ' ' + self.get_branch_display()
@@ -88,8 +89,12 @@ class Course(models.Model):
 class StudentCourse(models.Model):
     student = models.ForeignKey('Student', related_name='student_courses', on_delete=models.SET_NULL, null=True)
     course = models.ForeignKey('Course', related_name='student_courses', on_delete=models.SET_NULL, null=True)
-    final_grade = models.FloatField(blank=True, null=True)
-    mid_grade = models.FloatField(blank=True, null=True)
+    final_grade = models.FloatField(blank=True, null=True, validators=[
+        MaxValueValidator(20), MinValueValidator(0)
+    ])
+    mid_grade = models.FloatField(blank=True, null=True, validators=[
+        MaxValueValidator(20), MinValueValidator(0)
+    ])
 
 
 class Register(models.Model):
@@ -147,3 +152,15 @@ class Assignment(models.Model):
         MaxValueValidator(20), MinValueValidator(0)
     ])
     description = models.TextField()
+
+
+class StudentPresence(models.Model):
+    student_course = models.ForeignKey(StudentCourse, on_delete=models.SET_NULL, null=True)
+    date = models.DateField()
+    presence = models.BooleanField(verbose_name='حضور')
+    POSITIVE, NEGETIVE = 'pos', 'neg'
+    activity_choices = (
+        (POSITIVE, '+'),
+        (NEGETIVE, '-')
+    )
+    activity = models.CharField(max_length=20, choices=activity_choices, null=True, blank=True, verbose_name='فعالیت')

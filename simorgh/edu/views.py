@@ -1,14 +1,16 @@
 from django.contrib.auth.mixins import UserPassesTestMixin
+from django.forms import formset_factory
 from django.shortcuts import render, redirect
 from django.views.decorators.csrf import csrf_exempt
 
 from .models import Student, Classroom, Teacher, StudentCourse, Course, TeacherClassCourse, \
-    User, ClassTime, Register, Assignment
+    User, ClassTime, Register, Assignment, StudentPresence
 from django.views.generic.edit import FormView, UpdateView, CreateView, DeleteView
 from django.views.generic.list import ListView
 from django.views.generic.detail import DetailView
 from .forms import StudentForm, TeacherSearchForm, TeacherForm, StudentSearchForm, \
-    TeacherClassCourseForm, RegisterForm, ClassroomSearchForm, ClassroomForm, MessageForm, AssignmentForm, UserForm
+    TeacherClassCourseForm, RegisterForm, ClassroomSearchForm, ClassroomForm, MessageForm, AssignmentForm, UserForm, \
+    PlanningForm, StudentPresenceForm, StudentPresenceFormset
 from django.db.models import Q
 import datetime
 from .serializers import StudentSerializer
@@ -37,15 +39,26 @@ check_teacher = user_passes_test(
 )
 
 
+@check_teacher
 def student_class_list(request, pk):
     classroom = Classroom.objects.get(id=pk)
+    if Group.objects.get(name='teacher') in request.user.groups.all():
+        if Teacher.objects.get(user=request.user) not in Teacher.objects.filter(classrooms=classroom):
+            raise Http404('شما به این کلاس دسترسی ندارید')
     classroom_students = list(Student.objects.filter(classrooms=classroom))
     return render(request, 'edu/student_class_list.html',
                   {'classroom_students': classroom_students, 'classroom': classroom})
 
 
+@login_required
 def teacher_class_list(request, pk):
     classroom = Classroom.objects.get(id=pk)
+    if Group.objects.get(name='teacher') in request.user.groups.all():
+        if Teacher.objects.get(user=request.user) not in Teacher.objects.filter(classrooms=classroom):
+            raise Http404('شما به این کلاس دسترسی ندارید')
+    if Group.objects.get(name='student') in request.user.groups.all():
+        if Student.objects.get(user=request.user) not in Student.objects.filter(classrooms=classroom):
+            raise Http404('شما به این کلاس دسترسی ندارید')
     classroom_teacher_course = list(TeacherClassCourse.objects.filter(classroom=classroom))
     return render(request, 'edu/teacher_class_list.html',
                   {'classroom_teacher_course': classroom_teacher_course, 'classroom': classroom})
@@ -149,7 +162,6 @@ class ProfileUpdateView(UserPassesTestMixin, UpdateView):
 
     def test_func(self):
         if self.request.user.id == int(self.kwargs['pk']):
-            print(True)
             return True
         else:
             if self.request.user.is_authenticated():
@@ -245,7 +257,7 @@ class TeacherDeleteView(DeleteView):
     success_url = '/dashboard/teacherlist'
 
 
-@method_decorator((check_teacher, csrf_exempt), name='dispatch')
+@method_decorator((login_required, csrf_exempt), name='dispatch')
 class ClassroomListView(ListView):
     model = Classroom
     form_class = ClassroomSearchForm
@@ -260,7 +272,9 @@ class ClassroomListView(ListView):
     def get_queryset(self):
         queryset = super().get_queryset()
         if Group.objects.get(name='teacher') in self.request.user.groups.all():
-            queryset = queryset.filter(teachers=Teacher.objects.get(user=self.request.user))
+            queryset = queryset.filter(teachers=Teacher.objects.get(user=self.request.user), is_active=True)
+        elif Group.objects.get(name='student') in self.request.user.groups.all():
+            queryset = queryset.filter(registers=Register.objects.get(student__user=self.request.user), is_active=True)
         if self.request.GET:
             queryset = self.filter_queryset(queryset)
         return queryset
@@ -288,7 +302,7 @@ class ClassroomDetailView(DetailView):
 @method_decorator(check_manager, name='dispatch')
 class ClassroomUpdateView(UpdateView):
     model = Classroom
-    fields = ['branch', 'education_year']
+    fields = ['branch', 'education_year', 'is_active']
 
     def get_success_url(self):
         success_url = '/dashboard/classroomlist/'
@@ -486,5 +500,284 @@ def send_message_view(request):
             return HttpResponseRedirect(reverse('edu:message_form'))
     else:
         form = MessageForm(request, request.POST)
-        print(form.fields)
+        print(form.fields['recipients'])
     return render(request, 'edu/message_form.html', {'form': form})
+
+
+@method_decorator(check_teacher, name='dispatch')
+class TeacherClassCourseListView(ListView):
+    model = TeacherClassCourse
+    template_name = 'edu/teacherclasscourse_list.html'
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        if Group.objects.get(name='teacher') in self.request.user.groups.all():
+            queryset = queryset.filter(teacher__user=self.request.user)
+        return queryset
+
+
+@method_decorator(check_teacher, name='dispatch')
+class StudentCourseListView(UserPassesTestMixin, ListView):
+    model = StudentCourse
+    template_name = 'edu/studentcourse_list.html'
+
+    def test_func(self):
+        if Group.objects.get(name='teacher') in self.request.user.groups.all():
+            pk_tcc = self.kwargs.get('pk_tcc', '')
+            teacher_class_course = TeacherClassCourse.objects.get(id=pk_tcc)
+            if teacher_class_course.teacher != Teacher.objects.get(user=self.request.user):
+                raise Http404("شما به این لیست دسترسی ندارید.")
+        return True
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        pk_tcc = self.kwargs.get('pk_tcc', '')
+        print(pk_tcc)
+        teacher_class_course = TeacherClassCourse.objects.get(id=pk_tcc)
+        queryset = queryset.filter(
+            course=teacher_class_course.course, student__registers__classroom=teacher_class_course.classroom
+        )
+        return queryset
+
+
+@method_decorator(check_teacher, name='dispatch')
+class StudentCourseUpdateView(SuccessMessageMixin, UpdateView):
+    model = StudentCourse
+    fields = ['mid_grade', 'final_grade']
+    success_message = 'با موفقیت ثبت شد'
+
+    def get_success_url(self):
+        student_course = StudentCourse.objects.get(id=self.kwargs['pk'])
+        teacher_class_course = TeacherClassCourse.objects.get(
+            course=student_course.course, classroom=student_course.student.registers.get(is_active=True).classroom
+        )
+        success_url = '/dashboard/activity/grade/{}/students'.format(teacher_class_course.id)
+        return success_url
+
+
+import random
+from deap import base
+from deap import creator
+from deap import tools
+
+
+def ga_planning(info):
+    ind_size = 0
+    for tcc in info:
+        ind_size += tcc['time_number']
+    creator.create("FitnessMax", base.Fitness, weights=(1.0,))
+    creator.create("Individual", list, fitness=creator.FitnessMax)
+    toolbox = base.Toolbox()
+    toolbox.register("attr_bool", random.randint, 0, 4)
+    toolbox.register("individual", tools.initRepeat, creator.Individual,
+                     toolbox.attr_bool, ind_size)
+    toolbox.register("population", tools.initRepeat, list, toolbox.individual)
+
+    def evalOneMax(individual):
+        OF = 0
+        c = 0
+        for tcc in info:
+            for num in range(0, tcc['time_number']):
+                if str(individual[c]) not in tcc['days']:
+                    OF += -100
+                c += 1
+        for i in range(0, 5):
+            if individual.count(i) > 4:
+                OF += -10000
+        return OF,
+
+    toolbox.register("evaluate", evalOneMax)
+    toolbox.register("mate", tools.cxTwoPoint)
+    toolbox.register("mutate", tools.mutFlipBit, indpb=0.05)
+    toolbox.register("select", tools.selTournament, tournsize=3)
+
+    random.seed(64)
+    pop = toolbox.population(n=300)
+    CXPB, MUTPB = 0.5, 0.2
+    fitnesses = list(map(toolbox.evaluate, pop))
+    for ind, fit in zip(pop, fitnesses):
+        ind.fitness.values = fit
+
+    fits = [ind.fitness.values[0] for ind in pop]
+    g = 0
+    while max(fits) != 0 and g < 200:
+        g = g + 1
+        offspring = toolbox.select(pop, len(pop))
+        offspring = list(map(toolbox.clone, offspring))
+        for child1, child2 in zip(offspring[::2], offspring[1::2]):
+            if random.random() < CXPB:
+                toolbox.mate(child1, child2)
+                del child1.fitness.values
+                del child2.fitness.values
+
+        for mutant in offspring:
+            if random.random() < MUTPB:
+                toolbox.mutate(mutant)
+                del mutant.fitness.values
+
+        invalid_ind = [ind for ind in offspring if not ind.fitness.valid]
+        fitnesses = map(toolbox.evaluate, invalid_ind)
+        for ind, fit in zip(invalid_ind, fitnesses):
+            ind.fitness.values = fit
+
+        pop[:] = offspring
+        fits = [ind.fitness.values[0] for ind in pop]
+        length = len(pop)
+        mean = sum(fits) / length
+        sum2 = sum(x * x for x in fits)
+        std = abs(sum2 / length - mean ** 2) ** 0.5
+
+    best_ind = tools.selBest(pop, 1)[0]
+    return best_ind
+
+
+def planning_view(request):
+    PlanningFormSet = formset_factory(PlanningForm, extra=12)
+    if request.method == 'POST':
+        formset = PlanningFormSet(request.POST, request.FILES)
+        info = []
+        if formset.is_valid():
+            for form in formset:
+                if form.cleaned_data != {}:
+                    info.append(form.cleaned_data)
+
+        best_planning = ga_planning(info)
+        print(best_planning)
+        context = {}
+        class_time = [1, 1, 1, 1, 1]
+        unauthorized_time = [0 for i in range(0, 20)]
+        c = 0
+        for tcc in info:
+            for i in range(0, tcc['time_number']):
+                context['part_day{}'.format(4 * best_planning[c] + class_time[best_planning[c]])] = str(
+                    tcc['course']) + ' ' + '({})'.format(
+                    tcc['teacher'].user.last_name)
+                if str(best_planning[c]) not in tcc['days']:
+                    unauthorized_time[4 * best_planning[c] + class_time[best_planning[c]] - 1] = 1
+                class_time[best_planning[c]] += 1
+                c += 1
+        context['unauthorized_time'] = unauthorized_time
+        context['info'] = info
+        print(info)
+        print(best_planning)
+        print(best_planning.fitness.values)
+        print(unauthorized_time)
+        return render(request, 'edu/weekly_schedule.html', context)
+
+
+    else:
+        formset = PlanningFormSet()
+    return render(request, 'edu/planning_form.html', {'formset': formset})
+
+
+@method_decorator(check_teacher, name='dispatch')
+class StudentPresenceListView(UserPassesTestMixin, ListView):
+    model = StudentPresence
+    template_name = 'edu/student_presence_list.html'
+
+    def test_func(self):
+        # if Group.objects.get(name='student') in self.request.user.groups.all():
+        #     register = Register.objects.get(student=self.request.user.student, is_active=True)
+        #     tcc_list = TeacherClassCourse.objects.filter(classroom=register.classroom)
+        #     tcc_id_list = [tcc.id for tcc in tcc_list]
+        #     if int(self.kwargs['pk']) in tcc_id_list:
+        #         print(True)
+        #         return True
+        # else:
+        #     if self.request.user.is_authenticated():
+        #         raise Http404("شما نمی توانید در این نظرسنجی شرکت کنید.")
+        return True
+
+    def get_student_course_list(self):
+        pk_tcc = self.kwargs.get('pk_tcc', '')
+        teacher_class_course = TeacherClassCourse.objects.get(id=pk_tcc)
+        student_course_list = list(StudentCourse.objects.filter(
+            course=teacher_class_course.course, student__registers__classroom=teacher_class_course.classroom
+        ))
+        return student_course_list
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        student_course_list = self.get_student_course_list()
+        queryset = queryset.filter(student_course__in=student_course_list)
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super(StudentPresenceListView, self).get_context_data(**kwargs)
+        pk_tcc = self.kwargs.get('pk_tcc', '')
+        teacher_class_course = TeacherClassCourse.objects.get(id=pk_tcc)
+        context['tcc'] = teacher_class_course
+        presence_list = context['object_list']
+        date_list = presence_list.order_by().values('date').distinct()
+
+        student_course_list = self.get_student_course_list()
+        presence_date_list = []
+        for student_course in student_course_list:
+            presence_date = {}
+            presence_date['student_course'] = student_course
+            presence_date['student_presence_list'] = []
+            for date in date_list:
+                print(date['date'])
+                try:
+                    presence_date['student_presence_list'].append(
+                        StudentPresence.objects.get(student_course=student_course, date=date['date']))
+                except:
+                    presence_date['student_presence_list'].append(None)
+            presence_date_list.append(presence_date)
+        context['presence_date_list'] = presence_date_list
+        context['date_list'] = date_list
+        # print(context['presence_date_list'])
+        return context
+
+
+@method_decorator(check_teacher, name='dispatch')
+class StudentPresenceCreateView(UserPassesTestMixin, CreateView):
+    model = StudentPresence
+    form_class = StudentPresenceForm
+
+    def get_student_course_list(self):
+        pk_tcc = self.kwargs.get('pk_tcc', '')
+        teacher_class_course = TeacherClassCourse.objects.get(id=pk_tcc)
+        student_course_list = list(StudentCourse.objects.filter(
+            course=teacher_class_course.course, student__registers__classroom=teacher_class_course.classroom
+        ))
+        return student_course_list
+
+    def get_context_data(self, **kwargs):
+        context = super(StudentPresenceCreateView, self).get_context_data(**kwargs)
+        student_course_list = self.get_student_course_list()
+        StudentPresenceFormset = formset_factory(StudentPresenceForm, extra=len(student_course_list))
+        context['formset'] = StudentPresenceFormset()
+        context['students'] = [student_course.student for student_course in student_course_list]
+        return context
+
+    def test_func(self):
+        # if Group.objects.get(name='student') in self.request.user.groups.all():
+        #     register = Register.objects.get(student=self.request.user.student, is_active=True)
+        #     tcc_list = TeacherClassCourse.objects.filter(classroom=register.classroom)
+        #     tcc_id_list = [tcc.id for tcc in tcc_list]
+        #     if int(self.kwargs['pk']) in tcc_id_list:
+        #         print(True)
+        #         return True
+        # else:
+        #     if self.request.user.is_authenticated():
+        #         raise Http404("شما نمی توانید در این نظرسنجی شرکت کنید.")
+        return True
+
+    def post(self, request, *args, **kwargs):
+        formset = StudentPresenceFormset(request.POST)
+        if formset.is_valid():
+            return self.form_valid(formset)
+
+    def form_valid(self, formset):
+        if formset.is_valid():
+            student_course_list = self.get_student_course_list()
+            for i, form in enumerate(formset.forms):
+                student_presence = form.save(commit=False)
+                if student_presence.presence == None:
+                    student_presence.presence = False
+                student_presence.date = datetime.date.today()
+                student_presence.student_course = student_course_list[i]
+                student_presence.save()
+            return HttpResponseRedirect('/dashboard/activity/presence/{}'.format(self.kwargs['pk_tcc']))
+        return HttpResponseRedirect('/dashboard/activity/presence/{}/create'.format(self.kwargs['pk_tcc']))

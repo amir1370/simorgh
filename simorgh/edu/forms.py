@@ -1,6 +1,7 @@
-from django.forms import ModelForm
+from django.forms import ModelForm, formset_factory
 from django import forms
-from .models import Student, Teacher, Classroom, TeacherClassCourse, Register, User, ClassTime, Course, Assignment
+from .models import Student, Teacher, Classroom, TeacherClassCourse, Register, User, ClassTime, Course, Assignment, \
+    StudentPresence
 from django.forms.widgets import CheckboxSelectMultiple
 from django.db.models import Q
 from directmessages.models import Message
@@ -174,3 +175,26 @@ class AssignmentForm(ModelForm):
         super().__init__(*args, **kwargs)
         if Group.objects.get(name='teacher') in user.groups.all():
             self.fields['teacher_class_course'].queryset = TeacherClassCourse.objects.filter(teacher__user=user)
+
+
+class PlanningForm(forms.Form):
+    teacher = forms.ModelChoiceField(queryset=Teacher.objects.all())
+    course = forms.ModelChoiceField(queryset=Course.objects.all())
+    time_number = forms.IntegerField(max_value=4, min_value=1)
+    Saturday, Sunday, Monday, Tuesday, Wednesday = 0, 1, 2, 3, 4
+    day_choices = (
+        (Saturday, 'شنبه'),
+        (Sunday, 'یکشنبه'),
+        (Monday, 'دوشنبه'),
+        (Tuesday, 'سه شنبه'),
+        (Wednesday, 'چهارشنبه')
+    )
+    days = forms.MultipleChoiceField(choices=day_choices, widget=forms.CheckboxSelectMultiple)
+
+
+class StudentPresenceForm(forms.ModelForm):
+    class Meta:
+        model = StudentPresence
+        fields = ['presence', 'activity']
+
+StudentPresenceFormset = formset_factory(StudentPresenceForm)

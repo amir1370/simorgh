@@ -61,6 +61,17 @@ urlpatterns += [
     url(r'^dashboard/assignmentform/$', views.AssignmentCreateView.as_view()),
 ]
 urlpatterns += [
+    url(r'^dashboard/activity/$', views.TeacherClassCourseListView.as_view(), name='activity'),
+    url(r'^dashboard/activity/grade/(?P<pk_tcc>[0-9]+)/students$', views.StudentCourseListView.as_view(),
+        name='students_grade'),
+    url(r'^dashboard/activity/grade/(?P<pk>[0-9]+)/edit$', views.StudentCourseUpdateView.as_view(), name='grade_edit'),
+    url(r'^dashboard/activity/presence/(?P<pk_tcc>[0-9]+)/create$', views.StudentPresenceCreateView.as_view(),
+        name='student_presence_create'),
+    url(r'^dashboard/activity/presence/(?P<pk_tcc>[0-9]+)$', views.StudentPresenceListView.as_view(),
+        name='student_presence_list'),
+]
+urlpatterns += [
     url(r'^dashboard/messageform/$', views.send_message_view, name='message_form'),
+    url(r'^dashboard/planning/$', views.planning_view, name='planning'),
 ]
 handler404 = 'views.error_404_view'

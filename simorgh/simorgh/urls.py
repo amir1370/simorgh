@@ -21,6 +21,7 @@ from django.contrib import admin
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'^', include('edu.urls')),
+    url(r'^polls/', include('polls.urls')),
 ]
-if settings.DEBUG: # new
+if settings.DEBUG:  # new
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
