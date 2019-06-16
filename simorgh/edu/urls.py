@@ -36,6 +36,7 @@ urlpatterns += [
     url(r'^dashboard/students/(?P<pk>[0-9]+)/delete$', views.StudentDeleteView.as_view(), name='studentdelete'),
     url(r'^dashboard/studentregister/$', views.RegisterCreateView.as_view(), name='student_register'),
     url(r'students/api/$', views.student_list_api),
+    url(r'students/studentcourse/api/(?P<pk>[0-9]+)$', views.StudentCourseListAPIView.as_view()),
 ]
 urlpatterns += [
     url(r'^dashboard/teacherlist/$', views.TeacherListView.as_view(), name='teacherlist'),

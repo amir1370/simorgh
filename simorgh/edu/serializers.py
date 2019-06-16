@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from django.contrib.auth.hashers import make_password
-from .models import Student, Course
+from .models import Student, Course, StudentCourse
 
 
 class CourseSerializer(serializers.Serializer):
@@ -30,3 +30,14 @@ class StudentSerializer(serializers.Serializer):
         user_data['email'] = make_password(validated_data.pop('email'))
         new_user=User.objects.create(**user_data)
         return Student.objects.create(user=new_user, courses = new_course**validated_data)
+
+
+class StudentCourseSerializer(serializers.Serializer):
+    course = serializers.CharField()
+    student = serializers.CharField()
+    mid_grade = serializers.FloatField()
+    final_grade = serializers.FloatField()
+    # teacher = serializers.CharField()
+    # class Meta:
+    #     model = StudentCourse
+    #     fields = '__all__'

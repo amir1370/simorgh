@@ -1,11 +1,14 @@
+from itertools import chain
+
 from django.contrib.auth.mixins import UserPassesTestMixin
 from django.forms import formset_factory
 from django.shortcuts import render, redirect
 from django.views.decorators.csrf import csrf_exempt
+from rest_framework.generics import ListAPIView
 
 from .models import Student, Classroom, Teacher, StudentCourse, Course, TeacherClassCourse, \
     User, ClassTime, Register, Assignment, StudentPresence
-from django.views.generic.edit import FormView, UpdateView, CreateView, DeleteView
+from django.views.generic.edit import UpdateView, CreateView, DeleteView
 from django.views.generic.list import ListView
 from django.views.generic.detail import DetailView
 from .forms import StudentForm, TeacherSearchForm, TeacherForm, StudentSearchForm, \
@@ -13,7 +16,7 @@ from .forms import StudentForm, TeacherSearchForm, TeacherForm, StudentSearchFor
     PlanningForm, StudentPresenceForm, StudentPresenceFormset
 from django.db.models import Q
 import datetime
-from .serializers import StudentSerializer
+from .serializers import StudentSerializer, StudentCourseSerializer
 from django.http import JsonResponse, Http404, HttpResponseRedirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.decorators import user_passes_test
@@ -717,7 +720,6 @@ class StudentPresenceListView(UserPassesTestMixin, ListView):
             presence_date['student_course'] = student_course
             presence_date['student_presence_list'] = []
             for date in date_list:
-                print(date['date'])
                 try:
                     presence_date['student_presence_list'].append(
                         StudentPresence.objects.get(student_course=student_course, date=date['date']))
@@ -725,6 +727,8 @@ class StudentPresenceListView(UserPassesTestMixin, ListView):
                     presence_date['student_presence_list'].append(None)
             presence_date_list.append(presence_date)
         context['presence_date_list'] = presence_date_list
+        date_list = [jdatetime.date.fromgregorian(date=date['date']) for date in date_list]
+        print(date_list)
         context['date_list'] = date_list
         # print(context['presence_date_list'])
         return context
@@ -781,3 +785,23 @@ class StudentPresenceCreateView(UserPassesTestMixin, CreateView):
                 student_presence.save()
             return HttpResponseRedirect('/dashboard/activity/presence/{}'.format(self.kwargs['pk_tcc']))
         return HttpResponseRedirect('/dashboard/activity/presence/{}/create'.format(self.kwargs['pk_tcc']))
+
+
+class StudentCourseListAPIView(ListAPIView):
+    serializer_class = StudentCourseSerializer
+    # model = StudentCourse
+    paginate_by = 20
+
+    def get_queryset(self):
+        pk = self.kwargs['pk']
+        student = Student.objects.get(pk=pk)
+        classroom = Classroom.objects.filter(students=student, is_active=True).first()
+        course_list = list(Course.objects.filter(classrooms=classroom))
+        student_courses = StudentCourse.objects.filter(course__in=course_list, student=student)
+        teachers = Teacher.objects.filter(teacher_class_courses__classroom=classroom, teacher_class_courses__course__in=course_list)
+        queryset = chain(student_courses, teachers)
+        print(teachers)
+        print(student_courses)
+        return student_courses
+
+
