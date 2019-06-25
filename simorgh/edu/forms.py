@@ -1,3 +1,4 @@
+import jdatetime
 from django.forms import ModelForm, formset_factory
 from django import forms
 from .models import Student, Teacher, Classroom, TeacherClassCourse, Register, User, ClassTime, Course, Assignment, \
@@ -25,14 +26,21 @@ class TeacherForm(ModelForm):
     first_name = forms.CharField(max_length=150, label='نام')
     last_name = forms.CharField(max_length=150, label='نام خانوادگی')
     is_active = forms.BooleanField(label='فعال')
-
+    hire_date = forms.CharField(max_length=150, label='تاریخ استخدام')
     # user_id = forms.IntegerField(required=False)
     class Meta:
         model = Teacher
         exclude = ['user']
-        widgets = {
-            'hire_date': DateInput(),
-        }
+
+    def clean_hire_date(self):
+        hire_date = self.cleaned_data.get('hire_date')
+        print(hire_date)
+        (y , m, d) = hire_date.split('/')
+        hire_date = jdatetime.date(year=int(y), month=int(m), day=int(d))
+        print(hire_date)
+        hire_date = jdatetime.date.togregorian(hire_date)
+        print(hire_date)
+        return hire_date
 
 
 class TeacherSearchForm(forms.Form):

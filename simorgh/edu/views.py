@@ -183,8 +183,13 @@ class TeacherListView(ListView):
 
     def get_context_data(self, **kwargs):
         context = super(TeacherListView, self).get_context_data(**kwargs)
+        hire_dates = []
+        for teacher in context['teacher_list']:
+            hire_dates.append(jdatetime.date.fromgregorian(date=teacher.hire_date))
+        print(hire_dates)
         context.update({
-            'search': self.form_class()
+            'search': self.form_class(),
+            'hire_dates': hire_dates
         })
         # print(context['teacher_list'][0].hire_date)
         return context
@@ -243,6 +248,7 @@ class TeacherCreateView(CreateView):
         user = User.objects.create_user(password='abc123456', **user_dict)
         # user.set_password('abc123456')
         print(user.id)
+        print(form.cleaned_data['hire_date'])
         my_teacher = form.save(commit=False)
         my_teacher.user = user
         my_teacher.save()
@@ -432,6 +438,8 @@ def weekly_schedule(request, pk):
     classroom = Classroom.objects.get(id=pk)
     context = {}
     context['classroom'] = classroom
+    student_number = classroom.students.count()
+    context['student_number'] = student_number
     for my_object in list(TeacherClassCourse.objects.filter(classroom=classroom)):
         for class_time in list(ClassTime.objects.filter(teacher_class_course=my_object)):
             context['part_day{}'.format(class_time.id)] = str(my_object.course) + ' ' + '({})'.format(
@@ -679,16 +687,7 @@ class StudentPresenceListView(UserPassesTestMixin, ListView):
     template_name = 'edu/student_presence_list.html'
 
     def test_func(self):
-        # if Group.objects.get(name='student') in self.request.user.groups.all():
-        #     register = Register.objects.get(student=self.request.user.student, is_active=True)
-        #     tcc_list = TeacherClassCourse.objects.filter(classroom=register.classroom)
-        #     tcc_id_list = [tcc.id for tcc in tcc_list]
-        #     if int(self.kwargs['pk']) in tcc_id_list:
-        #         print(True)
-        #         return True
-        # else:
-        #     if self.request.user.is_authenticated():
-        #         raise Http404("شما نمی توانید در این نظرسنجی شرکت کنید.")
+
         return True
 
     def get_student_course_list(self):

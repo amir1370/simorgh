@@ -2,6 +2,9 @@
 {% load static from staticfiles %}
 {% load widget_tweaks %}
 
+{% block style %}
+    {% block style_form %}{% endblock %}
+{% endblock %}
 {% block content2 %}
     <div class="login-wrap pb-4">
         <div class="login-content border-success bg-light">
@@ -19,5 +22,8 @@
         </div>
     </div>
 
+{% endblock %}
+{% block script %}
+    {% block script_form %}{% endblock %}
 {% endblock %}
 

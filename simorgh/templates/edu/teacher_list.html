@@ -1,5 +1,6 @@
 {% extends 'list.html' %}
 {% load static from staticfiles %}
+{% load list_tags %}
 
 {% block list_title %}<b>لیست معلم ها</b>{% endblock %}
 
@@ -29,7 +30,7 @@
                     {{ teacher.user.last_name }}
                 </td>
                 <td>
-                    {{ teacher.hire_date }}
+                    {{ hire_dates|list_item:forloop.counter0 }}
                 </td>
                 <td>
                     <a href="/dashboard/teachers/{{ teacher.pk }}/">

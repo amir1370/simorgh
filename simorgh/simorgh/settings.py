@@ -36,6 +36,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'edu',
     'polls',
+    'planning',
     'rest_framework',
     'crispy_forms',
     'widget_tweaks',
