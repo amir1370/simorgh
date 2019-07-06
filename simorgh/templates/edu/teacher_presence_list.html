@@ -1,0 +1,70 @@
+{% extends 'list.html' %}
+{% load static from staticfiles %}
+
+{% block style_list %}
+
+{% endblock %}
+
+{% block list_title %}
+<b>لیست حضور و غیاب معلمان</b>
+{% endblock %}
+
+{% block list_add_icon %}
+
+{% endblock %}
+
+{% block list_content %}
+<div class="m-2">
+    <a href="/dashboard/activity/teacher_presence/Sa/create" class="ml-3">
+    شنبه
+</a>
+<a href="/dashboard/activity/teacher_presence/Su/create" class="ml-3">
+    یکشنبه
+</a>
+<a href="/dashboard/activity/teacher_presence/Mo/create" class="ml-3">
+    دوشنبه
+</a>
+<a href="/dashboard/activity/teacher_presence/Tu/create" class="ml-3">
+    سه شنبه
+</a>
+<a href="/dashboard/activity/teacher_presence/We/create" class="ml-3">
+    چهارشنبه
+</a>
+
+</div>
+<div class="panel-group" id="accordion">
+    {% for teacher_presence in teacher_presence_list %}
+    <div class="panel panel-default text-right">
+        <div class="panel-heading p-2 border border-info">
+            <h4 class="panel-title">
+                <a data-toggle="collapse" data-parent="#accordion" href="#collapse{{ forloop.counter }}" class="text-secondary">
+                    {{ teacher_presence.tcc }}
+                </a>
+            </h4>
+        </div>
+        <div id="collapse{{ forloop.counter }}" class="panel-collapse collapse m-2">
+            {% for teacher_presence in teacher_presence.presence_list %}
+            <div class="panel-body">{{ teacher_presence.date }} - {{ teacher_presence.presence }}</div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}
+{% block filter_title %}
+<h4 class="text-center m-auto">اطلاعات</h4>
+{% endblock %}
+{% block filter %}
+<form action="" method="get" class="form-horizontal p-auto">
+    {% csrf_token %}
+    <div class="form-group">
+        {{ search.as_p }}
+    </div>
+
+    <input type="submit" class="btn btn-primary mt-5" value="جستجو"/>
+</form>
+{% endblock %}
+
+{% block script_list %}
+
+{% endblock %}

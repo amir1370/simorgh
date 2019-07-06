@@ -1,0 +1,40 @@
+{% extends 'index.html' %}
+{% load static from staticfiles %}
+{% load widget_tweaks %}
+{% load list_tags %}
+
+
+{% block content2 %}
+    <div class="container">
+        <h3 class="text-center m-3">حضور و غیاب</h3>
+        {% if messages %}
+            <ul>
+                {% for message in messages %}
+                    <li>{{ message }}</li>
+                    </ul>
+                {% endfor %}
+        {% endif %}
+        <div class="mx-5">
+            <form method="post" class="my-3" style="background-color: lightgoldenrodyellow">
+                {% csrf_token %}
+                {{ formset.management_form }}
+                <table class="table table-bordered text-center">
+                    <tr>
+                        <th>ردیف</th>
+                        <th>معلم</th>
+                        <th>حضور</th>
+                    </tr>
+                    {% for form in formset %}
+                        <tr>
+                            <td style="max-width: 20px;">{{ forloop.counter }}</td>
+                            <td style="max-width: 100px;">{{ tcc|list_item:forloop.counter0 }}</td>
+                            <td style="max-width: 100px;">{{ form.presence }}</td>
+                        </tr>
+                    {% endfor %}
+                </table>
+                <button type="submit" class="btn btn-success m-3">ثبت</button>
+            </form>
+        </div>
+    </div>
+
+{% endblock %}
