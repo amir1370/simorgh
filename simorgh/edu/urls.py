@@ -70,6 +70,10 @@ urlpatterns += [
         name='student_presence_create'),
     url(r'^dashboard/activity/presence/(?P<pk_tcc>[0-9]+)$', views.StudentPresenceListView.as_view(),
         name='student_presence_list'),
+    url(r'^dashboard/activity/teacher_presence/(?P<pk_day>[0-4])/create$', views.TeacherPresenceCreateView.as_view(),
+        name='teacher_presence_create'),
+    url(r'^dashboard/activity/teacher_presence$', views.TeacherPresenceListView.as_view(),
+        name='teacher_presence_list'),
 ]
 urlpatterns += [
     url(r'^dashboard/messageform/$', views.send_message_view, name='message_form'),

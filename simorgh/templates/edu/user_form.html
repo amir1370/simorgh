@@ -1,52 +1,284 @@
 {% extends 'index.html' %}
 {% load static from staticfiles %}
 {% load widget_tweaks %}
+{% load auth_group %}
 
+{% block style %}
+    <link href="{% static 'css/profile.css' %}" rel="stylesheet" media="all">
+{% endblock %}
 {% block content2 %}
-    <div class="login-wrap pb-4">
-        <div class="login-content border-success bg-light">
+    <div id="user-profile-2" class="user-profile bg-light">
+        <div class="tabbable">
+            <ul class="nav nav-tabs padding-18">
+                <li class="active">
+                    <a data-toggle="tab" href="#home">
+                        <i class="text-info ace-icon fa fa-user bigger-120"></i>
+                        مشخصات
+                    </a>
+                </li>
 
-            <p style="text-align: center">
-                {{ user.first_name }} {{ user.last_name }}
-            </p>
-            {% if messages %}
-                <ul>
-                    {% for message in messages %}
-                        <li>{{ message }}</li>
-                        </ul>
-                    {% endfor %}
-            {% endif %}
-            <div class="login-form">
-                <form action="" method="post">
+                <li>
+                    <a data-toggle="tab" href="#feed">
+                        <i class="text-info ace-icon fa fa-pencil-square bigger-120"></i>
+                        وضعیت تحصیلی
+                    </a>
+                </li>
 
-                    {% csrf_token %}
-                    {{ form.non_field_errors }}
-                    <div class="form-group">
-                        {{ form.username.erorrs }}
-                        <label for="{{ form.username.id_for_label }}">نام کاربری :</label>
-                        {% render_field form.username class+="au-input au-input--full" %}
-                    </div>
-                    <div class="form-group">
-                        {{ form.email.errors }}
-                        <label for="{{ form.email.id_for_label }}">پست الکترونیک :</label>
-                        {% render_field form.email class+="au-input au-input--full" %}
-                    </div>
-                    {#                    <div class="form-group">#}
-                    {#                        <div class="text-right">#}
-                    {#                            <a href="/password/">تغییر رمز عبور</a>#}
-                    {#                        </div>#}
-                    {#                    </div>#}
+                <li>
+                    <a data-toggle="tab" href="#friends">
+                        <i class="text-info ace-icon fa fa-table bigger-120"></i>
+                        برنامه هفتگی
+                    </a>
+                </li>
+            </ul>
 
-                    <button type="submit" class="btn btn-primary">ویرایش</button>
-                </form>
-                <div class="form-group">
-                    <div class="text-right">
-                        <a href="/password/">تغییر رمز عبور</a>
+            <div class="tab-content no-border padding-24">
+                <div id="home" class="tab-pane in active">
+                    <div class="row">
+                        <div class="col-xs-12 col-sm-3 center">
+							<span class="profile-picture">
+								<img class="editable img-responsive" alt=" Avatar" id="avatar2"
+                                     src="http://bootdey.com/img/Content/avatar/avatar6.png">
+							</span>
+
+                            <div class="space space-4"></div>
+
+                        </div><!-- /.col -->
+
+                        <div class="col-xs-12 col-sm-9">
+                            <h4 class="blue text-right">
+                                {% if request.user|has_group:"teacher" %}
+                                    <span class="middle">معلم</span>
+                                {% endif %}
+                                {% if request.user|has_group:"manager" %}
+                                    <span class="middle">مدیر</span>
+                                {% endif %}
+                                {% if request.user|has_group:"student" %}
+                                    <span class="middle">دانش آموز</span>
+                                {% endif %}
+                            </h4>
+
+                            <div class="profile-user-info text-right">
+                                <div class="profile-info-row">
+                                    <div class="profile-info-name"> نام:</div>
+
+                                    <div class="profile-info-value">
+                                        <span>{{ user.first_name }}</span>
+                                    </div>
+                                </div>
+
+                                <div class="profile-info-row">
+                                    <div class="profile-info-name"> نام خانوادگی:</div>
+
+                                    <div class="profile-info-value">
+                                        <span>{{ user.last_name }}</span>
+                                    </div>
+                                </div>
+                                {% if request.user|has_group:"student" %}
+                                    <div class="profile-info-row">
+                                        <div class="profile-info-name"> رشته تحصیلی:</div>
+
+                                        <div class="profile-info-value">
+                                            <span>{{ info.level_field.get_field_display }}</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="profile-info-row">
+                                        <div class="profile-info-name"> پایه تحصیلی:</div>
+
+                                        <div class="profile-info-value">
+                                            <span>{{ info.level_field.get_level_display }}</span>
+                                        </div>
+                                    </div>
+                                {% endif %}
+                                {% if request.user|has_group:"teacher" %}
+                                    <div class="profile-info-row">
+                                        <div class="profile-info-name"> مدرک تحصیلی:</div>
+
+                                        <div class="profile-info-value">
+                                            <span>{{ user.teacher.get_education_degree_display }}</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="profile-info-row">
+                                        <div class="profile-info-name"> سابقه کاری:</div>
+
+                                        <div class="profile-info-value">
+                                            <span>  {{ user.teacher.get_experience }}  سال</span>
+                                        </div>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div><!-- /.col -->
+                    </div><!-- /.row -->
+
+                    <div class="space-20"></div>
+
+                    <div class="row">
+                        <div class="col-xs-12 col-sm-6 m-auto">
+                            <div class="widget-box transparent">
+                                <div class="login-wrap pb-4">
+                                    <div class="login-content border-success bg-light">
+                                        {% if messages %}
+                                            <ul>
+                                                {% for message in messages %}
+                                                    <li>{{ message }}</li>
+                                                    </ul>
+                                                {% endfor %}
+                                        {% endif %}
+                                        <div class="login-form">
+                                            <form action="" method="post">
+
+                                                {% csrf_token %}
+                                                {{ form.non_field_errors }}
+                                                <div class="form-group">
+                                                    {{ form.username.erorrs }}
+                                                    <label for="{{ form.username.id_for_label }}">نام کاربری :</label>
+                                                    {% render_field form.username class+="au-input au-input--full" %}
+                                                </div>
+                                                <div class="form-group">
+                                                    {{ form.email.errors }}
+                                                    <label for="{{ form.email.id_for_label }}">پست الکترونیک :</label>
+                                                    {% render_field form.email class+="au-input au-input--full" %}
+                                                </div>
+                                                {#                    <div class="form-group">#}
+                                                {#                        <div class="text-right">#}
+                                                {#                            <a href="/password/">تغییر رمز عبور</a>#}
+                                                {#                        </div>#}
+                                                {#                    </div>#}
+
+                                                <button type="submit" class="btn btn-primary">ویرایش</button>
+                                            </form>
+                                            <div class="form-group">
+                                                <div class="text-right">
+                                                    <a href="/password/">تغییر رمز عبور</a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                </div>
+                </div><!-- /#home -->
+
+                <div id="feed" class="tab-pane">
+                    <div class="profile-feed row">
+                        <div class="col-sm-6">
+                            <div class="profile-activity clearfix">
+
+                            </div>
+
+                            <div class="profile-activity clearfix">
+
+                            </div>
+
+                            <div class="profile-activity clearfix">
+
+                            </div>
+
+                            <div class="profile-activity clearfix">
+
+                            </div>
+
+                            <div class="profile-activity clearfix">
+
+                            </div>
+                        </div><!-- /.col -->
+
+                        <div class="col-sm-6">
+                            <div class="profile-activity clearfix">
+
+                            </div>
+
+                            <div class="profile-activity clearfix">
+
+                            </div>
+
+                            <div class="profile-activity clearfix">
+
+                            </div>
+
+                            <div class="profile-activity clearfix">
+
+                            </div>
+
+                            <div class="profile-activity clearfix">
+
+                            </div>
+                        </div><!-- /.col -->
+                    </div><!-- /.row -->
+
+                    <div class="space-12"></div>
+
+                    <div class="center">
+                        <button type="button" class="btn btn-sm btn-primary btn-white btn-round">
+                            <i class="ace-icon fa fa-rss bigger-150 middle orange2"></i>
+                            <span class="bigger-110">View more activities</span>
+
+                            <i class="icon-on-right ace-icon fa fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </div><!-- /#feed -->
+
+                <div id="friends" class="tab-pane">
+                    <div class="table-responsive border border-dark">
+                        <table class="table table-bordered text-center">
+                            <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>زنگ اول</th>
+                                <th>زنگ دوم</th>
+                                <th>زنگ سوم</th>
+                                <th>زنگ چهارم</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr>
+                                <td><b>شنبه</b></td>
+                                <td class="{% if unauthorized_time.0 == 1 %} bg-danger text-light {% endif %}">{{ part_day1 }}</td>
+                                <td class="{% if unauthorized_time.1 == 1 %} bg-danger text-light {% endif %}">{{ part_day2 }}</td>
+                                <td class="{% if unauthorized_time.2 == 1 %} bg-danger text-light {% endif %}">{{ part_day3 }}</td>
+                                <td class="{% if unauthorized_time.3 == 1 %} bg-danger text-light {% endif %}">{{ part_day4 }}</td>
+                            </tr>
+                            <tr>
+                                <td><b>یکشنبه</b></td>
+                                <td class="{% if unauthorized_time.4 == 1 %} bg-danger text-light {% endif %}">{{ part_day5 }}</td>
+                                <td class="{% if unauthorized_time.5 == 1 %} bg-danger text-light {% endif %}">{{ part_day6 }}</td>
+                                <td class="{% if unauthorized_time.6 == 1 %} bg-danger text-light {% endif %}">{{ part_day7 }}</td>
+                                <td class="{% if unauthorized_time.7 == 1 %} bg-danger text-light {% endif %}">{{ part_day8 }}</td>
+                            </tr>
+                            <tr>
+                                <td><b>دوشنبه</b></td>
+                                <td class="{% if unauthorized_time.8 == 1 %} bg-danger text-light {% endif %}">{{ part_day9 }}</td>
+                                <td class="{% if unauthorized_time.9 == 1 %} bg-danger text-light {% endif %}">{{ part_day10 }}</td>
+                                <td class="{% if unauthorized_time.10 == 1 %} bg-danger text-light {% endif %}">{{ part_day11 }}</td>
+                                <td class="{% if unauthorized_time.11 == 1 %} bg-danger text-light {% endif %}">{{ part_day12 }}</td>
+                            </tr>
+                            <tr>
+                                <td><b>سه شنبه</b></td>
+                                <td class="{% if unauthorized_time.12 == 1 %} bg-danger text-light {% endif %}">{{ part_day13 }}</td>
+                                <td class="{% if unauthorized_time.13 == 1 %} bg-danger text-light {% endif %}">{{ part_day14 }}</td>
+                                <td class="{% if unauthorized_time.14 == 1 %} bg-danger text-light {% endif %}">{{ part_day15 }}</td>
+                                <td class="{% if unauthorized_time.15 == 1 %} bg-danger text-light {% endif %}">{{ part_day16 }}</td>
+                            </tr>
+                            <tr>
+                                <td><b>چهارشنبه</b></td>
+                                <td class="{% if unauthorized_time.16 == 1 %} bg-danger text-light {% endif %}">{{ part_day17 }}</td>
+                                <td class="{% if unauthorized_time.17 == 1 %} bg-danger text-light {% endif %}">{{ part_day18 }}</td>
+                                <td class="{% if unauthorized_time.18 == 1 %} bg-danger text-light {% endif %}">{{ part_day19 }}</td>
+                                <td class="{% if unauthorized_time.19 == 1 %} bg-danger text-light {% endif %}">{{ part_day20 }}</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div><!-- /#friends -->
+
             </div>
         </div>
     </div>
+
+
 
 {% endblock %}
 

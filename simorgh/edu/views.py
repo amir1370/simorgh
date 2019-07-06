@@ -7,13 +7,14 @@ from django.views.decorators.csrf import csrf_exempt
 from rest_framework.generics import ListAPIView
 
 from .models import Student, Classroom, Teacher, StudentCourse, Course, TeacherClassCourse, \
-    User, ClassTime, Register, Assignment, StudentPresence
+    User, ClassTime, Register, Assignment, StudentPresence, TeacherPresence
 from django.views.generic.edit import UpdateView, CreateView, DeleteView
 from django.views.generic.list import ListView
 from django.views.generic.detail import DetailView
 from .forms import StudentForm, TeacherSearchForm, TeacherForm, StudentSearchForm, \
     TeacherClassCourseForm, RegisterForm, ClassroomSearchForm, ClassroomForm, MessageForm, AssignmentForm, UserForm, \
-    PlanningForm, StudentPresenceForm, StudentPresenceFormset
+    PlanningForm, StudentPresenceForm, StudentPresenceFormset, StudentUpdateForm, TeacherPresenceForm, ClassTimeForm, \
+    TeacherPresenceFormset
 from django.db.models import Q
 import datetime
 from .serializers import StudentSerializer, StudentCourseSerializer
@@ -142,9 +143,31 @@ class StudentUpdateView(UpdateView):
     model = Student
     fields = ['student_id']
 
+    def get_form_class(self):
+        return StudentUpdateForm
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['pk'] = self.kwargs['pk']
+        return kwargs
+
     def get_success_url(self):
         success_url = '/dashboard/studentlist'
         return success_url
+
+    def form_valid(self, form):
+        user_dict = {}
+        for key in ['username', 'first_name', 'last_name', 'is_active']:
+            user_dict[key] = form.cleaned_data.pop(key)
+        my_user = Student.objects.get(id=self.kwargs['pk']).user
+        my_user.username = user_dict['username']
+        my_user.first_name = user_dict['first_name']
+        my_user.last_name = user_dict['last_name']
+        my_user.is_active = user_dict['is_active']
+        my_user.save()
+        form.save()
+        return super().form_valid(form)
+
 
 
 @method_decorator(check_manager, name='dispatch')
@@ -158,6 +181,29 @@ class ProfileUpdateView(UserPassesTestMixin, UpdateView):
     model = User
     template_name = 'edu/user_form.html'
     form_class = UserForm
+
+    def get_context_data(self, **kwargs):
+        context = super(ProfileUpdateView, self).get_context_data(**kwargs)
+        tcc_list = []
+        if Group.objects.get(name='teacher') in self.request.user.groups.all():
+            teacher = Teacher.objects.get(user=self.request.user)
+            tcc_list = list(TeacherClassCourse.objects.filter(teacher=teacher))
+            for my_object in tcc_list:
+                for class_time in list(ClassTime.objects.filter(teacher_class_course=my_object)):
+                    context['part_day{}'.format(class_time.id)] = str(my_object.classroom) + ' ' + '({})'.format(
+                        my_object.course)
+        elif Group.objects.get(name='student') in self.request.user.groups.all():
+            student = Student.objects.get(user=self.request.user)
+            info = {}
+            register = Register.objects.filter(student=student, is_active=True).first()
+            info['level_field'] =register.classroom.level_field
+            context['info'] = info
+            tcc_list = list(TeacherClassCourse.objects.filter(classroom=register.classroom))
+            for my_object in tcc_list:
+                for class_time in list(ClassTime.objects.filter(teacher_class_course=my_object)):
+                    context['part_day{}'.format(class_time.id)] = str(my_object.course) + ' ' + '({})'.format(
+                        my_object.teacher.user.last_name)
+        return context
 
     def get_success_url(self):
         success_url = '/dashboard'
@@ -727,7 +773,7 @@ class StudentPresenceListView(UserPassesTestMixin, ListView):
             presence_date_list.append(presence_date)
         context['presence_date_list'] = presence_date_list
         date_list = [jdatetime.date.fromgregorian(date=date['date']) for date in date_list]
-        print(date_list)
+        print(presence_date_list)
         context['date_list'] = date_list
         # print(context['presence_date_list'])
         return context
@@ -783,7 +829,62 @@ class StudentPresenceCreateView(UserPassesTestMixin, CreateView):
                 student_presence.student_course = student_course_list[i]
                 student_presence.save()
             return HttpResponseRedirect('/dashboard/activity/presence/{}'.format(self.kwargs['pk_tcc']))
-        return HttpResponseRedirect('/dashboard/activity/presence/{}/create'.format(self.kwargs['pk_tcc']))
+        return HttpResponseRedirect('/dashboard/activity/presence/{}/create'.format(self.kwargs['pk_day']))
+
+
+@method_decorator(check_manager, name='dispatch')
+class TeacherPresenceCreateView(CreateView):
+    model = TeacherPresence
+    form_class = TeacherPresenceForm
+
+    def get_context_data(self, **kwargs):
+        context = super(TeacherPresenceCreateView, self).get_context_data(**kwargs)
+        print(self.kwargs['pk_day'])
+        days = ['Sa', 'Su', 'Mo', 'Tu', 'We']
+        tcc_list = list(TeacherClassCourse.objects.filter(class_time__day=days[int(self.kwargs['pk_day'])]))
+        TeacherPresenceFormset = formset_factory(TeacherPresenceForm, extra=len(tcc_list))
+        context['formset'] = TeacherPresenceFormset()
+        context['tcc'] = tcc_list
+        return context
+
+    def post(self, request, *args, **kwargs):
+        formset = TeacherPresenceFormset(request.POST)
+        if formset.is_valid():
+            return self.form_valid(formset)
+
+    def form_valid(self, formset):
+        if formset.is_valid():
+            days = ['Sa', 'Su', 'Mo', 'Tu', 'We']
+            tcc_list = list(TeacherClassCourse.objects.filter(class_time__day=days[int(self.kwargs['pk_day'])]))
+            for i, form in enumerate(formset.forms):
+                teacher_presence = form.save(commit=False)
+                print(teacher_presence)
+                if teacher_presence.presence == None:
+                    teacher_presence.presence = False
+                teacher_presence.date = datetime.date.today()
+                teacher_presence.teacher_class_course = tcc_list[i]
+                teacher_presence.save()
+            return HttpResponseRedirect('/dashboard/activity/teacher_presence/')
+        return HttpResponseRedirect('/dashboard/activity/teacher_presence/{}/create'.format(self.kwargs['pk_day']))
+
+
+@method_decorator(check_manager, name='dispatch')
+class TeacherPresenceListView(ListView):
+    model = TeacherPresence
+    template_name = 'edu/teacher_presence_list.html'
+
+
+    def get_context_data(self, **kwargs):
+        context = super(TeacherPresenceListView, self).get_context_data(**kwargs)
+        tcc_list = list(TeacherClassCourse.objects.all())
+        teacher_presence_list = []
+        for tcc in tcc_list:
+            teacher_presence = {}
+            teacher_presence['tcc'] = tcc
+            teacher_presence['presence_list'] = list(TeacherPresence.objects.filter(teacher_class_course= tcc))
+            teacher_presence_list.append(teacher_presence)
+        context['teacher_presence_list'] = teacher_presence_list
+        return context
 
 
 class StudentCourseListAPIView(ListAPIView):
@@ -797,10 +898,9 @@ class StudentCourseListAPIView(ListAPIView):
         classroom = Classroom.objects.filter(students=student, is_active=True).first()
         course_list = list(Course.objects.filter(classrooms=classroom))
         student_courses = StudentCourse.objects.filter(course__in=course_list, student=student)
-        teachers = Teacher.objects.filter(teacher_class_courses__classroom=classroom, teacher_class_courses__course__in=course_list)
+        teachers = Teacher.objects.filter(teacher_class_courses__classroom=classroom,
+                                          teacher_class_courses__course__in=course_list)
         queryset = chain(student_courses, teachers)
         print(teachers)
         print(student_courses)
         return student_courses
-
-

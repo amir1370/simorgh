@@ -164,3 +164,9 @@ class StudentPresence(models.Model):
         (NEGETIVE, '-')
     )
     activity = models.CharField(max_length=20, choices=activity_choices, null=True, blank=True, verbose_name='فعالیت')
+
+
+class TeacherPresence(models.Model):
+    teacher_class_course = models.ForeignKey(TeacherClassCourse, on_delete=models.SET_NULL, null=True)
+    date = models.DateField()
+    presence = models.BooleanField(verbose_name='حضور')

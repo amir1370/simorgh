@@ -2,7 +2,7 @@ import jdatetime
 from django.forms import ModelForm, formset_factory
 from django import forms
 from .models import Student, Teacher, Classroom, TeacherClassCourse, Register, User, ClassTime, Course, Assignment, \
-    StudentPresence
+    StudentPresence, TeacherPresence
 from django.forms.widgets import CheckboxSelectMultiple
 from django.db.models import Q
 from directmessages.models import Message
@@ -21,12 +21,34 @@ class StudentForm(ModelForm):
         fields = ['username', 'first_name', 'last_name', 'is_active']
 
 
+class StudentUpdateForm(ModelForm):
+    username = forms.CharField(max_length=120, label='نام کاربری')
+    first_name = forms.CharField(max_length=150, label='نام')
+    last_name = forms.CharField(max_length=150, label='نام خانوادگی')
+    is_active = forms.BooleanField(label='فعال')
+
+    class Meta:
+        model = Student
+        fields = ['student_id']
+
+    def __init__(self, *args, **kwargs):
+        pk = kwargs.pop('pk')
+        super().__init__(*args, **kwargs)
+        student = Student.objects.get(id=pk)
+        self.fields['username'].initial = student.user.username
+        self.fields['first_name'].initial = student.user.first_name
+        self.fields['last_name'].initial = student.user.last_name
+        self.fields['is_active'].initial = student.user.is_active
+
+
+
 class TeacherForm(ModelForm):
     username = forms.CharField(max_length=120, label='نام کاربری')
     first_name = forms.CharField(max_length=150, label='نام')
     last_name = forms.CharField(max_length=150, label='نام خانوادگی')
     is_active = forms.BooleanField(label='فعال')
     hire_date = forms.CharField(max_length=150, label='تاریخ استخدام')
+
     # user_id = forms.IntegerField(required=False)
     class Meta:
         model = Teacher
@@ -35,7 +57,7 @@ class TeacherForm(ModelForm):
     def clean_hire_date(self):
         hire_date = self.cleaned_data.get('hire_date')
         print(hire_date)
-        (y , m, d) = hire_date.split('/')
+        (y, m, d) = hire_date.split('/')
         hire_date = jdatetime.date(year=int(y), month=int(m), day=int(d))
         print(hire_date)
         hire_date = jdatetime.date.togregorian(hire_date)
@@ -205,4 +227,20 @@ class StudentPresenceForm(forms.ModelForm):
         model = StudentPresence
         fields = ['presence', 'activity']
 
+
 StudentPresenceFormset = formset_factory(StudentPresenceForm)
+
+
+class TeacherPresenceForm(forms.ModelForm):
+    class Meta:
+        model = TeacherPresence
+        fields = ['presence']
+
+
+TeacherPresenceFormset = formset_factory(TeacherPresenceForm)
+
+
+class ClassTimeForm(forms.ModelForm):
+    class Meta:
+        model = ClassTime
+        fields = ['day']

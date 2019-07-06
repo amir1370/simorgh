@@ -1,59 +1,176 @@
 {% extends 'list.html' %}
 {% load static from staticfiles %}
 
+{% block style_list %}
+<style>
+    html {
+  box-sizing: border-box;
+}
+*,
+*:before,
+*:after {
+  box-sizing: inherit;
+}
+.intro {
+  max-width: 1280px;
+  margin: 1em auto;
+}
+.table-scroll {
+  position: relative;
+  width:100%;
+  z-index: 1;
+  margin: auto;
+  overflow: scroll;
+  height: 350px;
+}
+.table-scroll table {
+  width: 100%;
+  min-width: 1280px;
+  margin: auto;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+.table-wrap {
+  position: relative;
+}
+.table-scroll th,
+.table-scroll td {
+  padding: 5px 10px;
+  border: 1px solid #000;
+  background: #fff;
+  vertical-align: top;
+}
+.table-scroll thead th {
+  background: #333;
+  color: #fff;
+  position: -webkit-sticky;
+  position: sticky;
+  top: 0;
+}
+/* safari and ios need the tfoot itself to be position:sticky also */
+.table-scroll tfoot,
+.table-scroll tfoot th,
+.table-scroll tfoot td {
+  position: -webkit-sticky;
+  position: sticky;
+  bottom: 0;
+  background: #666;
+  color: #fff;
+  z-index:4;
+}
+
+a:focus {
+  background: red;
+} /* testing links*/
+
+th:first-child {
+  position: -webkit-sticky;
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  background: #ccc;
+}
+thead th:first-child,
+tfoot th:first-child {
+  z-index: 5;
+}
+
+</style>
+
+{% endblock %}
+
 {% block list_title %}
-    <b>لیست حضور و غیاب دانش آموزان</b>
+<b>لیست حضور و غیاب دانش آموزان</b>
 {% endblock %}
 
 {% block list_add_icon %}
-    <a href="/dashboard/activity/presence/{{ tcc.pk }}/create" class="ml-3">
-        <h2 class="text-primary"><i class="zmdi zmdi-account-add"></i></h2>
-    </a>
+<a href="/dashboard/activity/presence/{{ tcc.pk }}/create" class="ml-3">
+    <h2 class="text-primary"><i class="zmdi zmdi-account-add"></i></h2>
+</a>
 {% endblock %}
 
 {% block list_content %}
-    <div class="row p-3">
-        <div class="float-right mx-3"><b>کلاس: </b> {{ tcc.classroom }} </div>
-        <div class="float-right mx-3"><b>درس: </b> {{ tcc.course }} </div>
-    </div>
-    <table class="table table-hover table-bordered" style="text-align: center; background-color: lightgoldenrodyellow;">
-        <tr>
-            <th>دانش آموز</th>
-            {% for date in date_list %}
-                <th>{{ date }}</th>
-            {% endfor %}
-        </tr>
+<div class="row p-3">
+    <div class="float-right mx-3"><b>کلاس: </b> {{ tcc.classroom }}</div>
+    <div class="float-right mx-3"><b>درس: </b> {{ tcc.course }}</div>
+</div>
 
-        {% for presence_date in presence_date_list %}
-            <tr>
-                <td>
-                    {{ presence_date.student_course.student }}
-                </td>
-                {% for student_presence in presence_date.student_presence_list %}
-                    <td>
-                        {% if student_presence.presence == True %}
-                            <i class="fa fa-check text-success"></i>
-                        {% elif student_presence.presence == False %}
-                            <i class="fa fa-times text-danger"></i>
-                        {% endif %}
-                    </td>
-                {% endfor %}
+<div id="table-scroll" class="table-scroll">
+        <table id="main-table" class="main-table">
+            <thead>
+            <th class="fixed-side" scope="col">&nbsp;دانش آموز</th>
+            {% for date in date_list %}
+            <th scope="col">{{ date }}</th>
+            {% endfor %}
             </tr>
+            </thead>
+            <tbody>
+            {% for presence_date in presence_date_list %}
+    <tr>
+        <th class="fixed-side">
+            {{ presence_date.student_course.student }}
+        </th>
+        {% for student_presence in presence_date.student_presence_list %}
+        <td>
+            {% if student_presence.presence == True %}
+            <i class="fa fa-check text-success"></i>
+            {% elif student_presence.presence == False %}
+            <i class="fa fa-times text-danger"></i>
+            {% endif %}
+        </td>
         {% endfor %}
-    </table>
+    </tr>
+    {% endfor %}
+            </tbody>
+        </table>
+</div>
+
+<table class="table table-hover table-bordered" style="text-align: center; background-color: lightgoldenrodyellow;">
+    <tr>
+        <th>دانش آموز</th>
+        {% for date in date_list %}
+        <th>{{ date }}</th>
+        {% endfor %}
+    </tr>
+
+    {% for presence_date in presence_date_list %}
+    <tr>
+        <td class="td-fixed">
+            {{ presence_date.student_course.student }}
+        </td>
+        {% for student_presence in presence_date.student_presence_list %}
+        <td>
+            {% if student_presence.presence == True %}
+            <i class="fa fa-check text-success"></i>
+            {% elif student_presence.presence == False %}
+            <i class="fa fa-times text-danger"></i>
+            {% endif %}
+        </td>
+        {% endfor %}
+    </tr>
+    {% endfor %}
+</table>
 {% endblock %}
 {% block filter_title %}
-    <h4 class="text-center m-auto">اطلاعات</h4>
+<h4 class="text-center m-auto">اطلاعات</h4>
 {% endblock %}
 {% block filter %}
-    <form action="" method="get" class="form-horizontal p-auto">
-        {% csrf_token %}
-        <div class="form-group">
-            {{ search.as_p }}
-        </div>
+<form action="" method="get" class="form-horizontal p-auto">
+    {% csrf_token %}
+    <div class="form-group">
+        {{ search.as_p }}
+    </div>
 
-        <input type="submit" class="btn btn-primary mt-5" value="جستجو"/>
-    </form>
+    <input type="submit" class="btn btn-primary mt-5" value="جستجو"/>
+</form>
 {% endblock %}
 
+{% block script_list %}
+<script>
+    // requires jquery library
+    jQuery(document).ready(function () {
+        jQuery(".main-table").clone(true).appendTo('#table-scroll').addClass('clone');
+    });
 
+</script>
+{% endblock %}
